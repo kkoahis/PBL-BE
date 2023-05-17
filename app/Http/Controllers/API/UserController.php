@@ -62,7 +62,10 @@ class UserController extends Controller
             }
 
             $token = $user->createToken(Str::random(40));
-            return response()->json(['token' => $token->plainTextToken]);
+            return response()->json([
+                'token' => $token->plainTextToken,
+                'data' => $user
+            ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
