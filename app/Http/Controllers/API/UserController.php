@@ -90,4 +90,30 @@ class UserController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
+    public function updateRole(Request $request, $email)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'role' => 'required|string|in:admin,hotel'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($validator->messages(), 400);
+            }
+
+            $user = User::where('email', $email)->first();
+
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            }
+
+            $user->role = $request->role;
+            $user->save();
+
+            return response()->json($user);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }

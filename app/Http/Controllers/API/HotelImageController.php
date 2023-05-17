@@ -140,7 +140,15 @@ class HotelImageController extends BaseController
 
     public function restoreByHotelId($id)
     {
+        $user = Auth::user();
+        if ($user->role == 'hotel') {
+            $hotel = Hotel::find($id);
+            if ($hotel->created_by != $user->id) {
+                return $this->sendError('You are not authorized to restore image to this hotel.');
+            }
+        }
         $hotelImage = HotelImage::onlyTrashed()->where('hotel_id', $id)->restore();
+
         if ($hotelImage) {
             return $this->sendResponse([], 'Hotel image restored successfully.');
         } else {

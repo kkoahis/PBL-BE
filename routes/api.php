@@ -30,6 +30,17 @@ Route::controller(UserController::class)->group(function () {
     Route::post('/logout', 'logout');
 });
 
+// Route updateRole for admin by email input field
+Route::middleware(['auth:sanctum', 'verified', 'role:admin'])->prefix('users')->group(function () {
+    Route::put('/role/{email}', [UserController::class, 'updateRole']);
+});
+
+Route::prefix('hotel-images')->group(function () {
+    Route::get('/', [HotelImageController::class, 'index']);
+    Route::get('/{id}', [HotelImageController::class, 'show']);
+    Route::get('/hotel/{id}', [HotelImageController::class, 'getImageByHotelId']);
+});
+
 Route::prefix('hotels')->group(function () {
     Route::get('/safety-hygiene', [HotelController::class, 'getHotelBySafetyHygiene']);
     Route::get('/amenities', [HotelController::class, 'getHotelByAmenities']);

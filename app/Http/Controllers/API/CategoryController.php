@@ -10,6 +10,8 @@ use App\Models\RoomImage;
 use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\CategoryResource;
+use App\Models\Hotel;
+use Illuminate\Support\Facades\Auth;
 
 class CategoryController extends BaseController
 {
@@ -46,7 +48,27 @@ class CategoryController extends BaseController
         if ($validator->fails()) {
             return $this->sendError('Validation Error.', $validator->errors());
         }
-        $category = Category::create($input);
+
+        $user = Auth::user();
+
+        if ($user->role == 'admin') {
+            $hotel = Hotel::firstOrFail($input['hotel_id']);
+            if (is_null($hotel)) {
+                return $this->sendError('Hotel ID not found.');
+            }
+        } else {
+            // get hotel id from input id, then check if hotel is created by user
+            $hotel = Hotel::where('created_by', $user->id)->find($input['hotel_id']);
+            if (is_null($hotel)) {
+                return $this->sendError('You are not authorized to add category to this hotel.');
+            }
+        }
+
+        $category = new Category();
+        $category->name = $input['name'];
+        $category->description = $input['description'];
+        $category->hotel_id = $input['hotel_id'];
+        $category->save();
 
         return $this->sendResponse(new CategoryResource($category), 'Category created successfully.');
     }
@@ -71,6 +93,22 @@ class CategoryController extends BaseController
         $category->name = $input['name'];
         $category->description = $input['description'];
         // $category->hotel_id = $input['hotel_id'];
+
+        $user = Auth::user();
+        if ($user->role == 'admin') {
+            // get hotel id from input id from request id url
+            $hotel = Hotel::firstOrFail($category->hotel_id);
+            if (is_null($hotel)) {
+                return $this->sendError('Hotel ID not found.');
+            }
+        } else {
+            // get hotel id from input id, then check if hotel is created by user
+            $hotel = Hotel::where('created_by', $user->id)->find($category->hotel_id);
+            if (is_null($hotel)) {
+                return $this->sendError('You are not authorized to add category to this hotel.');
+            }
+        }
+
         $category->save();
 
         return response()->json(([

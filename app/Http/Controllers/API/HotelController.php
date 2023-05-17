@@ -70,7 +70,6 @@ class HotelController extends BaseController
             return $this->sendError('Validation Error.', $validator->errors());
         }
 
-
         $hotel = new Hotel();
 
         $hotel->name = $input['name'];
