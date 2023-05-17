@@ -28,6 +28,7 @@ Route::controller(UserController::class)->group(function () {
     Route::post('/register', 'register');
     Route::post('/login', 'login');
     Route::post('/logout', 'logout');
+    Route::get('/csrf', 'createCSRF');
 });
 
 // Route updateRole for admin by email input field

@@ -126,6 +126,22 @@ class CategoryController extends BaseController
             return $this->sendError('Category not found.');
         }
 
+        $user = Auth::user();
+
+        if ($user->role == 'admin') {
+            // get hotel id from input id from request id url
+            $hotel = Hotel::firstOrFail($category->hotel_id);
+            if (is_null($hotel)) {
+                return $this->sendError('Hotel ID not found.');
+            }
+        } else {
+            // get hotel id from input id, then check if hotel is created by user
+            $hotel = Hotel::where('created_by', $user->id)->find($category->hotel_id);
+            if (is_null($hotel)) {
+                return $this->sendError('You are not authorized to add category to this hotel.');
+            }
+        }
+
         $room = $category->room;
         $roomImage = $category->room->map(function ($item) {
             return $item->roomImage;
@@ -153,9 +169,28 @@ class CategoryController extends BaseController
     {
         $category = Category::where('hotel_id', $id)->get();
 
+
         if (is_null($category)) {
             return $this->sendError('Category not found.');
         }
+
+        $user = Auth::user();
+
+        if ($user->role == 'admin') {
+            // get hotel id from input id from request id url
+            $hotel = Hotel::firstOrFail($id);
+            if (is_null($hotel)) {
+                return $this->sendError('Hotel ID not found.');
+            }
+        } else {
+            // get hotel id from input id, then check if hotel is created by user
+            $hotel = Hotel::where('created_by', $user->id)->find($id);
+            if (is_null($hotel)) {
+                return $this->sendError('You are not authorized to add category to this hotel.');
+            }
+        }
+
+
         if ($category->count() > 0) {
             foreach ($category as $item) {
                 $item->delete();
@@ -172,6 +207,21 @@ class CategoryController extends BaseController
         $category = Category::onlyTrashed()->find($id);
         if (is_null($category)) {
             return $this->sendError('Category not found.');
+        }
+
+        $user = Auth::user();
+        if ($user->role == 'admin') {
+            // get hotel id from input id from request id url
+            $hotel = Hotel::firstOrFail($category->hotel_id);
+            if (is_null($hotel)) {
+                return $this->sendError('Hotel ID not found.');
+            }
+        } else {
+            // get hotel id from input id, then check if hotel is created by user
+            $hotel = Hotel::where('created_by', $user->id)->find($category->hotel_id);
+            if (is_null($hotel)) {
+                return $this->sendError('You are not authorized to add category to this hotel.');
+            }
         }
 
         $room = $category->room()->onlyTrashed()->get();
@@ -202,10 +252,29 @@ class CategoryController extends BaseController
     public function restoreByHotelId($id)
     {
         $category = Category::onlyTrashed()->where('hotel_id', $id)->get();
+
         if (is_null($category)) {
             return $this->sendError('Hotel ID not found.');
         }
+
         if ($category->count() > 0) {
+            $user = Auth::user();
+
+            if ($user->role == 'admin') {
+                // get hotel id from input id from request id url
+                $hotel = Hotel::firstOrFail($id);
+                if (is_null($hotel)) {
+                    return $this->sendError('Hotel ID not found.');
+                }
+            } else {
+                // get hotel id from input id, then check if hotel is created by user
+                $hotel = Hotel::where('created_by', $user->id)->find($id);
+                if (is_null($hotel)) {
+                    return $this->sendError('You are not authorized to add category to this hotel.');
+                }
+            }
+
+
             foreach ($category as $item) {
                 $item->restore();
             }

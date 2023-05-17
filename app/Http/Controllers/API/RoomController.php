@@ -37,7 +37,7 @@ class RoomController extends BaseController
         $validator = Validator::make($input, [
             'category_id' => 'required|exists:category,id,deleted_at,NULL',
             'name' =>  "required",
-            'size' =>  "required",
+            'size' =>  "required| numeric | regex:/^\d+(\.\d+)?$/",
             'bed' =>  "required",
             'bathroom_facilities',
             'amenities',

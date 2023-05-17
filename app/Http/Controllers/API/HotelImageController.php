@@ -165,7 +165,6 @@ class HotelImageController extends BaseController
         }        
 
         if (count($hotelImage) > 0) {
-
             $user = Auth::user();
             if ($user->role == 'hotel') {
                 $hotel = Hotel::find($id);
