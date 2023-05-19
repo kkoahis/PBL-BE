@@ -68,7 +68,7 @@ class HotelImageController extends BaseController
     {
         $input = $request->all();
         $validator = Validator::make($input, [
-            'hotel_id' => 'required',
+            'hotel_id' => 'required|exists:hotel,id,deleted_at,NULL',
             'image_url' => 'required',
             'image_description'
         ]);

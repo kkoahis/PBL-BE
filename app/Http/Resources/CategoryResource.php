@@ -19,6 +19,17 @@ class CategoryResource extends JsonResource
             'hotel_id' => $this->hotel_id,
             'name' => $this->name,
             'description' => $this->description,
+
+            'size' => $this->size,
+            'bed' => $this->bed,
+            'bathroom_facilities' => $this->bathroom_facilities,
+            'amenities' => $this->amenities,
+            'directions_view' => $this->directions_view,
+            'description' => $this->description,
+            'price' => $this->price,
+            'max_people' => $this->max_people,
+            'is_smoking' => $this->is_smoking,
+
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             

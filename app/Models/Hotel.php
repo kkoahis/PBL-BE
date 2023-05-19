@@ -32,7 +32,6 @@ class Hotel extends Model
         'check_in',
         'check_out',
         'guests',
-
     ];
 
     // public function user()

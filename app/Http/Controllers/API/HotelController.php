@@ -50,16 +50,16 @@ class HotelController extends BaseController
             'hotline' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
             'email' => 'required|email',
             'description',
-            'room_total' => 'required | numberic',
-            'parking_slot' => 'required | numberic',
-            'bathrooms' => 'required | numberic',
+            'room_total' => 'required | numeric',
+            'parking_slot' => 'required | numeric',
+            'bathrooms' => 'required | numeric',
             // create_by has to be user admin in table users
             // 'created_by' => 'required',
             'amenities' => 'required',
             'Safety_Hygiene' => 'required',
             'check_in|date',
             'check_out|date',
-            'guests | numberic',
+            'guests | numeric',
             'city' => 'required',
             'nation' => 'required',
             'price',
@@ -130,14 +130,14 @@ class HotelController extends BaseController
             // must be in correct email format
             'email' => 'email | email',
             'description',
-            'room_total | numberic',
-            'parking_slot | numberic',
-            'bathrooms | numberic',
+            'room_total | numeric',
+            'parking_slot | numeric',
+            'bathrooms | numeric',
             'amenities',
             'Safety_Hygiene',
             'check_in | date',
             'check_out | date',
-            'guests | numberic',
+            'guests | numeric',
             'city',
             'nation',
             'price',
@@ -155,7 +155,6 @@ class HotelController extends BaseController
         if ($user->id != $hotel->created_by) {
             return $this->sendError('You are not authorized to update this hotel.');
         } else {
-
             $hotel->name = $input['name'];
             $hotel->address = $input['address'];
             $hotel->hotline = $input['hotline'];
@@ -212,11 +211,11 @@ class HotelController extends BaseController
             $room = $hotel->category->map(function ($category) {
                 return $category->room;
             });
-            $roomImage = $hotel->category->map(function ($category) {
-                return $category->room->map(function ($room) {
-                    return $room->roomImage;
-                });
+
+            $categoryImage = $hotel->category->map(function ($category) {
+                return $category->categoryImage;
             });
+
             $booking = $hotel->booking;
 
             // only get review != null
@@ -251,11 +250,9 @@ class HotelController extends BaseController
                 foreach ($hotelImage as $hi) {
                     $hi->delete();
                 }
-                foreach ($roomImage as $ri) {
-                    foreach ($ri as $r) {
-                        foreach ($r as $ro) {
-                            $ro->delete();
-                        }
+                foreach ($categoryImage as $ci) {
+                    foreach ($ci as $c) {
+                        $c->delete();
                     }
                 }
                 foreach ($booking as $b) {
@@ -299,10 +296,8 @@ class HotelController extends BaseController
             $room = $hotel->category()->onlyTrashed()->get()->map(function ($category) {
                 return $category->room()->onlyTrashed()->get();
             });
-            $roomImage = $hotel->category()->onlyTrashed()->get()->map(function ($category) {
-                return $category->room()->onlyTrashed()->get()->map(function ($room) {
-                    return $room->roomImage()->onlyTrashed()->get();
-                });
+            $categoryImage = $hotel->category()->onlyTrashed()->get()->map(function ($category) {
+                return $category->categoryImage()->onlyTrashed()->get();
             });
             $booking = $hotel->booking()->onlyTrashed()->get();
             $review = $hotel->booking()->onlyTrashed()->get()->map(function ($booking) {
@@ -336,11 +331,9 @@ class HotelController extends BaseController
                     $hi->restore();
                 }
                 // restore room image
-                foreach ($roomImage as $ri) {
-                    foreach ($ri as $r) {
-                        foreach ($r as $ro) {
-                            $ro->restore();
-                        }
+                foreach ($categoryImage as $ci) {
+                    foreach ($ci as $c) {
+                        $c->restore();
                     }
                 }
 

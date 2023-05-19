@@ -12,6 +12,7 @@ use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\ReviewController;
 use App\Http\Controllers\API\ReplyController;
 use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\API\categoryImageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,7 +29,6 @@ Route::controller(UserController::class)->group(function () {
     Route::post('/register', 'register');
     Route::post('/login', 'login');
     Route::post('/logout', 'logout');
-    Route::get('/csrf', 'createCSRF');
 });
 
 // Route updateRole for admin by email input field
@@ -86,20 +86,19 @@ Route::prefix('categories')->group(function () {
     Route::get('/', [CategoryController::class, 'index']);
     Route::get('/{id}', [CategoryController::class, 'show']);
     Route::get('/hotel/{id}', [CategoryController::class, 'getCategoryByHotelId']);
+    Route::get('/price/{id}', [CategoryController::class, 'getPriceByCategoryId']);
 });
 
 // Categories API
 Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('categories')->group(function () {
-    Route::get('categories', [CategoryController::class, 'index']);
-    Route::get('categories/{id}', [CategoryController::class, 'show']);
     Route::post('/', [CategoryController::class, 'store']);
     Route::put('/{id}', [CategoryController::class, 'update']);
     Route::delete('/{id}', [CategoryController::class, 'destroy']);
 
     Route::put('/restore/{id}', [CategoryController::class, 'restore']);
-    Route::get('/hotel/{id}', [CategoryController::class, 'getCategoryByHotelId']);
     Route::delete('/hotel/{id}', [CategoryController::class, 'deleteCategoryByHotelId']);
     Route::put('/hotel/{id}', [CategoryController::class, 'restoreByHotelId']);
+    Route::put('/price/{id}', [CategoryController::class, 'updatePriceByCategoryId']);
 });
 
 Route::prefix('rooms')->group(function () {
@@ -123,32 +122,27 @@ Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('rooms')->
     Route::put('/restore/{id}', [RoomController::class, 'restore']);
     Route::put('/category/{id}', [RoomController::class, 'restoreByCategoryId']);
     Route::put('/hotel/{id}', [RoomController::class, 'restoreByHotelId']);
-    //updatePriceByRoomId
-    Route::put('/price/{id}', [RoomController::class, 'updatePriceByRoomId']);
 });
 
 
-Route::prefix('room-images')->group(function () {
-    Route::get('/', [RoomImageController::class, 'index']);
-    Route::get('/{id}', [RoomImageController::class, 'show']);
-    Route::get('/room/{id}', [RoomImageController::class, 'getImageByRoomId']);
+Route::prefix('category-images')->group(function () {
+    Route::get('/', [categoryImageController::class, 'index']);
+    Route::get('/{id}', [categoryImageController::class, 'show']);
+    Route::get('/category/{id}', [categoryImageController::class, 'getImageBycategoryId']);
 });
 
-// Room Image API
-Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('room-images')->group(function () {
-    Route::get('room-images', [RoomImageController::class, 'index']);
-    Route::get('room-images/{id}', [RoomImageController::class, 'show']);
-    Route::post('/', [RoomImageController::class, 'store']);
-    Route::put('/{id}', [RoomImageController::class, 'update']);
-    Route::delete('/{id}', [RoomImageController::class, 'destroy']);
+// Category Image API
+Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('category-images')->group(function () {
+    Route::post('/', [categoryImageController::class, 'store']);
+    Route::put('/{id}', [categoryImageController::class, 'update']);
+    Route::delete('/{id}', [categoryImageController::class, 'destroy']);
 
-    Route::get('room-images/room/{id}', [RoomImageController::class, 'getImageByRoomId']);
-    Route::delete('/room/{id}', [RoomImageController::class, 'deleteImageByRoomId']);
-    Route::put('/room/{id}', [RoomImageController::class, 'restoreByRoomId']);
+    Route::delete('/category/{id}', [categoryImageController::class, 'deleteByCategoryId']);
+    Route::put('/category/{id}', [categoryImageController::class, 'restoreBycategoryId']);
 });
 
 // Booking API
-Route::middleware(['auth:sanctum', 'verified', 'role:user'])->prefix('bookings')->group(function () {
+Route::middleware(['auth:sanctum', 'verified', 'role:user,hotel'])->prefix('bookings')->group(function () {
     Route::get('', [BookingController::class, 'index']);
     Route::get('/{id}', [BookingController::class, 'show']);
     Route::post('/', [BookingController::class, 'store']);

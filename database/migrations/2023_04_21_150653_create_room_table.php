@@ -16,17 +16,8 @@ return new class extends Migration
             $table->id();
             $table->foreignid('category_id')->constrained('category')->onDelete('cascade')->onUpdate('cascade');
             $table->string('name');
-            $table->float('size');
-            $table->string('bed');
-            $table->text('bathroom_facilities');
-            $table->text('amenities');
-            $table->text('directions_view');
-            $table->text('description');
-            $table->double('price');
-            $table->integer('max_people');
-            // room status :true is available, false is not available
-            $table->boolean('status')->default(true);
-            $table->boolean('is_smoking')->default(false);
+            $table->boolean('status')->default(false);
+
             $table->timestamps();
             // soft delete
             $table->softDeletes();

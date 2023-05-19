@@ -16,6 +16,16 @@ return new class extends Migration
             $table->foreignId('hotel_id')->constrained('hotel')->onDelete('cascade')->onUpdate('cascade');
             $table->string('name');
             $table->string('description')->nullable();
+
+            $table->float('size');
+            $table->string('bed');
+            $table->text('bathroom_facilities');
+            $table->text('amenities');
+            $table->text('directions_view');
+            $table->double('price');
+            $table->integer('max_people');
+            $table->boolean('is_smoking')->default(false);
+            
             $table->timestamps();
             $table->softDeletes();
         });

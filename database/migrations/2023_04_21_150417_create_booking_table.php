@@ -21,7 +21,7 @@ return new class extends Migration
 
             $table->integer('room_count');
             $table->double('total_amount');
-            $table->string('status');
+            // $table->string('status')->default('pending');
             $table->string('description')->nullable();
             $table->boolean('is_payment')->default(false);
             $table->string('payment_type')->nullable();

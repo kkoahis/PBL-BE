@@ -16,6 +16,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('booking_id')->constrained('booking')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('room_id')->constrained('room')->onDelete('cascade')->onUpdate('cascade');
+            
+            $table->dateTime('date_in');
+            $table->dateTime('date_out');
+
             $table->timestamps();
             $table->softDeletes();
         });

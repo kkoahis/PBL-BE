@@ -9,6 +9,7 @@ use App\Http\Resources\RoomResource;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Category;
+use Illuminate\Support\Facades\Auth;
 
 class RoomController extends BaseController
 {
@@ -37,21 +38,26 @@ class RoomController extends BaseController
         $validator = Validator::make($input, [
             'category_id' => 'required|exists:category,id,deleted_at,NULL',
             'name' =>  "required",
-            'size' =>  "required| numeric | regex:/^\d+(\.\d+)?$/",
-            'bed' =>  "required",
-            'bathroom_facilities',
-            'amenities',
-            'directions_view',
-            'description',
-            'price' =>  "required",
-            'max_people' =>  "required",
-            'status' =>  "required",
-            'is_smoking' =>  "required",
+            // 'status' =>  "required",
         ]);
 
         if ($validator->fails()) {
             return $this->sendError('Validation Error.', $validator->errors());
         }
+
+        $user = Auth::user();
+
+        if ($user->role == 'hotel') {
+            // get hotel id from input id
+            $category = Category::find($input['category_id']);
+            if (is_null($category)) {
+                return $this->sendError('Category ID not found.');
+            }
+            if ($category->hotel->created_by != $user->id) {
+                return $this->sendError('You are not authorized to add room to this hotel.');
+            }
+        }
+
         $room = Room::create($input);
 
         return $this->sendResponse(new RoomResource($room), 'Room created successfully.');
@@ -63,16 +69,7 @@ class RoomController extends BaseController
         $validator = Validator::make($input, [
             'category_id' => 'required|exists:category,id,deleted_at,NULL',
             'name',
-            'size',
-            'bed',
-            'bathroom_facilities',
-            'amenities',
-            'directions_view',
-            'description',
-            'price',
-            'max_people',
             'status',
-            'is_smoking',
         ]);
 
         if ($validator->fails()) {
@@ -83,18 +80,22 @@ class RoomController extends BaseController
             return $this->sendError('Room not found.');
         }
 
+        $user = Auth::user();
+
+        if ($user->role == 'hotel') {
+            // get hotel id from input id
+            $category = Category::find($input['category_id']);
+            if (is_null($category)) {
+                return $this->sendError('Category ID not found.');
+            }
+            if ($category->hotel->created_by != $user->id) {
+                return $this->sendError('You are not authorized to update room to this hotel.');
+            }
+        }
+
         $room->category_id = $input['category_id'];
         $room->name = $input['name'];
-        $room->size = $input['size'];
-        $room->bed = $input['bed'];
-        $room->bathroom_facilities = $input['bathroom_facilities'];
-        $room->amenities = $input['amenities'];
-        $room->directions_view = $input['directions_view'];
-        $room->description = $input['description'];
-        $room->price = $input['price'];
-        $room->max_people = $input['max_people'];
         $room->status = $input['status'];
-        $room->is_smoking = $input['is_smoking'];
 
         if ($room->save()) {
             return $this->sendResponse(new RoomResource($room), 'Room updated successfully.');
@@ -110,16 +111,24 @@ class RoomController extends BaseController
             return $this->sendError('Room not found.');
         }
 
-        $roomImage = $room->roomImage;
-        if ($room->delete()) {
-            foreach ($roomImage as $image) {
-                $image->delete();
+        $user = Auth::user();
+
+        if ($user->role == 'hotel') {
+            // get hotel id from input id
+            $category = Category::find($room->category_id);
+            if (is_null($category)) {
+                return $this->sendError('Category ID not found.');
             }
+            if ($category->hotel->created_by != $user->id) {
+                return $this->sendError('You are not authorized to delete room to this hotel.');
+            }
+        }
+
+        if ($room->delete()) {
+            return $this->sendResponse([], 'Room deleted successfully.');
         } else {
             return $this->sendError('Room not deleted.');
         }
-
-        return $this->sendResponse([], 'Room deleted successfully.');
     }
 
     public function restore($id)
@@ -130,28 +139,49 @@ class RoomController extends BaseController
             return $this->sendError('Room not found.');
         }
 
-        $roomImage = $room->roomImage()->onlyTrashed()->get();
+        $user = Auth::user();
+
+        if ($user->role == 'hotel') {
+            // get hotel id from input id
+            $category = Category::find($room->category_id);
+            if (is_null($category)) {
+                return $this->sendError('Category ID not found.');
+            }
+            if ($category->hotel->created_by != $user->id) {
+                return $this->sendError('You are not authorized to restore room to this hotel.');
+            }
+        }
+
 
         if ($room->restore()) {
-            foreach ($roomImage as $image) {
-                $image->restore();
-            }
+            return $this->sendResponse([], 'Room restored successfully.');
         } else {
             return $this->sendError('Room not restored.');
         }
-
-        return $this->sendResponse([], 'Room restored successfully.');
     }
 
     public function restoreByHotelId($id)
     {
-        //
-        $category = Category::onlyTrashed()->where('hotel_id', $id)->get();
+        $category = Category::withTrashed()->where('hotel_id', $id)->get();
+
         if (is_null($category)) {
             return $this->sendError('Category not found.');
         }
 
         if ($category->count() > 0) {
+            $user = Auth::user();
+
+            if ($user->role == 'hotel') {
+                // get hotel id from input id
+                $hotel = $category[0]->hotel;
+                if (is_null($hotel)) {
+                    return $this->sendError('Hotel ID not found.');
+                }
+                if ($hotel->created_by != $user->id) {
+                    return $this->sendError('You are not authorized to restore room to this hotel.');
+                }
+            }
+
             foreach ($category as $c) {
                 $room = Room::onlyTrashed()->where('category_id', $c->id)->get();
                 if ($room->count() > 0) {
@@ -159,8 +189,8 @@ class RoomController extends BaseController
                         $r->restore();
                     }
                 }
+                return $this->sendResponse([], 'Room restored successfully.');
             }
-            return $this->sendResponse([], 'Room restored successfully.');
         } else {
             return $this->sendError('Room not restored.');
         }
@@ -173,6 +203,18 @@ class RoomController extends BaseController
             return $this->sendError('Room not found.');
         }
         if ($room->count() > 0) {
+
+            $user = Auth::user();
+            if ($user->role == 'hotel') {
+                $category = Category::find($id);
+                if (is_null($category)) {
+                    return $this->sendError('Category ID not found.');
+                }
+                if ($category->hotel->created_by != $user->id) {
+                    return $this->sendError('You are not authorized to restore room to this hotel.');
+                }
+            }
+
             foreach ($room as $r) {
                 $r->restore();
             }
@@ -205,44 +247,6 @@ class RoomController extends BaseController
         }
     }
 
-    public function getPriceByRoomId($id)
-    {
-        $room = Room::find($id);
-
-        if (is_null($room)) {
-            return $this->sendError('Room not found.');
-        }
-
-        return response()->json($room->price);
-    }
-
-    // get array of price of room by hotel id
-    public function getAllPriceByHotelId($id){
-        $category = Category::where('hotel_id', $id)->get();
-        if (is_null($category)) {
-            return $this->sendError('Category not found.');
-        }
-
-        $rooms = [];
-        if ($category->count() > 0) {
-            foreach ($category as $c) {
-                $room = Room::where('category_id', $c->id)->get();
-                if ($room->count() > 0) {
-                    foreach ($room as $r) {
-                        array_push($rooms, $r->price);
-                    }
-                }
-            }
-            return response()->json([
-                'success' => true,
-                'message' => 'Hotel retrieved successfully.',
-                'data' => $rooms,
-            ]);
-        } else {
-            return $this->sendError('Hotel ID not found.');
-        }
-    }
-
     public function CountRoomByCategoryId($id)
     {
         $room = Room::where('category_id', $id)->get()->count();
@@ -250,33 +254,5 @@ class RoomController extends BaseController
             return $this->sendError('Room not found.');
         }
         return response()->json($room);
-    }
-
-    public function updatePriceByRoomId(Request $request, $id)
-    {
-        $input = $request->all();
-        $validator = Validator::make($input, [
-            'price' =>  "required|numeric",
-        ]);
-
-        if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
-        }
-        $room = Room::find($id);
-        if (is_null($room)) {
-            return $this->sendError('Room not found.');
-        }
-
-        $room->price = $input['price'];
-
-        if ($room->save()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Room updated successfully.',
-                'data' => $room,
-            ]);
-        } else {
-            return $this->sendError('Room not updated.');
-        }
     }
 }
