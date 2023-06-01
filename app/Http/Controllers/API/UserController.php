@@ -71,8 +71,6 @@ class UserController extends Controller
     }
 
 
-
-
     public function logout(Request $request)
     {
         try {
@@ -116,6 +114,18 @@ class UserController extends Controller
             $user->save();
 
             return response()->json($user);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+
+    public function getAllUser()
+    {
+        try {
+            $users = User::all();
+
+            return response()->json($users);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
