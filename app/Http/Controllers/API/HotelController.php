@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Http\Resources\BookingResource;
+use App\Models\BookingDetail;
+use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
 use Monolog\Handler\SendGridHandler;
 use PhpParser\Node\Expr\FuncCall;
@@ -452,35 +454,6 @@ class HotelController extends BaseController
         }
 
         $hotel = Hotel::orderBy('price', 'asc')->whereBetween('price', [$input['min_price'], $input['max_price']])->with('hotelImage')->paginate(20);
-
-        if (is_null($hotel)) {
-            return $this->sendError('Hotel not found.');
-        }
-        return response()->json(([
-            'success' => true,
-            'message' => 'Hotel retrieved successfully.',
-            'data' => $hotel,
-        ]
-        ));
-    }
-
-    public function getHotelByCheckInAndCheckOut(Request $request)
-    {
-        $input = $request->all();
-        $validator = Validator::make($input, [
-            'check_in' => 'required|date',
-            'check_out' => 'required|date',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
-        }
-
-        if ($input['check_in'] > $input['check_out']) {
-            return $this->sendError('Check in must be less than check out.');
-        }
-
-        $hotel = Hotel::orderBy('check_in', 'asc')->whereBetween('check_in', [$input['check_in'], $input['check_out']])->with('hotelImage')->paginate(20);
 
         if (is_null($hotel)) {
             return $this->sendError('Hotel not found.');

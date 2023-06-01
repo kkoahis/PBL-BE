@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('description')->nullable();
 
             $table->float('size');
-            $table->string('bed');
+            $table->integer('bed');
             $table->text('bathroom_facilities');
             $table->text('amenities');
             $table->text('directions_view');

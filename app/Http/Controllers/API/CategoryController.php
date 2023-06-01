@@ -10,8 +10,13 @@ use App\Models\RoomImage;
 use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\CategoryResource;
+use App\Models\Booking;
+use App\Models\BookingDetail;
 use App\Models\Hotel;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class CategoryController extends BaseController
 {
@@ -409,7 +414,8 @@ class CategoryController extends BaseController
         );
     }
 
-    public function getPriceByCategoryId($id){
+    public function getPriceByCategoryId($id)
+    {
         $category = Category::find($id);
 
         if (is_null($category)) {
@@ -424,5 +430,129 @@ class CategoryController extends BaseController
                 ]
             ])
         );
+    }
+
+
+    public function getCategoryByCheckInCheckOut(Request $request)
+    {
+        $input = $request->all();
+        $validator = Validator::make($input, [
+            'date_in' => 'required | date',
+            'date_out' => 'required | date | after:date_in',
+            'category_id' => 'required | integer',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $date_in = $input['date_in'];
+        $date_out = $input['date_out'];
+        $category_id = $input['category_id'];
+
+        // get all room id from category id
+        $room = Room::where('category_id', $category_id)->get()->pluck('id');
+
+        // get booking detail with date_in and date_out
+        $bookingDetail = BookingDetail::where('date_in', '<=', $date_in)
+            ->where('date_out', '>=', $date_out)
+            ->whereIn('room_id', $room)
+            ->get();
+
+        // get all room id from booking detail
+        $roomBooked = $bookingDetail->pluck('room_id');
+
+        // echo $roomBooked . "\n" . $room; 
+
+        // inner join to get room that is not booked
+        $roomAvailable = Room::where('category_id', $category_id)
+            ->whereNotIn('id', $roomBooked)
+            ->get();
+
+        // echo $roomAvailable->count();
+
+        // // get category from room available
+        $category = $roomAvailable->map(function ($item) {
+            return $item->category;
+        });
+
+        return response()->json(([
+                'success' => true,
+                'message' => 'Category retrieved successfully.',
+                'data' => [
+                    'room available' => $roomAvailable->count(),
+                ]
+            ])
+        );
+    }
+
+
+    public function getCategoryByCheckInCheckOutHotel(Request $request)
+    {
+        $input = $request->all();
+        $validator = Validator::make($input, [
+            'date_in' => 'required | date',
+            'date_out' => 'required | date | after:date_in',
+            'hotel_id' => 'required | integer',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $date_in = $input['date_in'];
+        $date_out = $input['date_out'];
+        $hotel_id = $input['hotel_id'];
+
+        try {
+            DB::beginTransaction();
+
+            $category = Category::where('hotel_id', $hotel_id)->get()->pluck('id');
+            $allRoom = Room::whereIn('category_id', $category)->get()->pluck('id');
+
+            $bookingDetail = BookingDetail::where('date_in', '<=', $date_in)
+                ->where('date_out', '>=', $date_out)
+                ->whereIn('room_id', $allRoom)
+                ->get();
+
+            $roomBooked = $bookingDetail->pluck('room_id');
+
+            $roomAvailable = Room::whereIn('id', $allRoom)
+                ->whereNotIn('id', $roomBooked)
+                ->get();
+
+            $categoryDisplay = [];
+            $roomCountPerDisplay = [];
+            $roomIDPerDisplay = [];
+
+            // if request again, then refresh roomIDPerDisplay and roomCountPerDisplay
+            if (Cache::has('roomIDPerDisplay')) {
+                Cache::forget('roomIDPerDisplay');
+            }
+            if (Cache::has('roomCountPerDisplay')) {
+                Cache::forget('roomCountPerDisplay');
+            }
+
+            foreach ($category as $key => $value) {
+                $categoryDisplay[$key] = Category::find($value);
+                $roomCountPerDisplay[$key] = $roomAvailable->where('category_id', $value)->count();
+                $roomIDPerDisplay[$key] = $roomAvailable->where('category_id', $value)->pluck('id');
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Category retrieved successfully.',
+                'data' => [
+                    'category' => $categoryDisplay,
+                    'room available' => $roomCountPerDisplay,
+                    'room id' => $roomIDPerDisplay,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->sendError('Error retrieving categories.', $e->getMessage());
+        }
     }
 }

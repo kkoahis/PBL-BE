@@ -5,7 +5,6 @@ use App\Http\Controllers\API\HotelController;
 use App\Http\Controllers\API\HotelImageController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\RoomController;
-use App\Http\Controllers\API\RoomImageController;
 use App\Http\Controllers\API\BookingController;
 use App\Http\Controllers\API\BookingDetailController;
 use App\Http\Controllers\API\PaymentController;
@@ -48,7 +47,6 @@ Route::prefix('hotels')->group(function () {
     Route::get('/rating', [HotelController::class, 'getHotelByRating']);
     Route::get('/guests', [HotelController::class, 'getHotelByGuests']);
     Route::get('/prices', [HotelController::class, 'getHotelByPrice']);
-    Route::get('/check-in', [HotelController::class, 'getHotelByCheckInAndCheckOut']);
     Route::get('/', [HotelController::class, 'index']);
     Route::get('/{id}', [HotelController::class, 'show']);
     Route::get('/name/{name}', [HotelController::class, 'getHotelByName']);
@@ -83,7 +81,7 @@ Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('hotel-ima
 });
 
 Route::prefix('categories')->group(function () {
-    Route::get('/', [CategoryController::class, 'index']);
+    Route::get('/', [CategoryController::class, 'getCategoryByCheckInCheckOutHotel']);
     Route::get('/{id}', [CategoryController::class, 'show']);
     Route::get('/hotel/{id}', [CategoryController::class, 'getCategoryByHotelId']);
     Route::get('/price/{id}', [CategoryController::class, 'getPriceByCategoryId']);
@@ -143,14 +141,17 @@ Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('category-
 
 // Booking API
 Route::middleware(['auth:sanctum', 'verified', 'role:user,hotel'])->prefix('bookings')->group(function () {
-    Route::get('', [BookingController::class, 'index']);
+    // Route::get('', [BookingController::class, 'index']);
     Route::get('/{id}', [BookingController::class, 'show']);
     Route::post('/', [BookingController::class, 'store']);
     Route::put('/{id}', [BookingController::class, 'update']);
     Route::delete('/{id}', [BookingController::class, 'destroy']);
 
-    Route::get('/user/{id}', [BookingController::class, 'getBookingByUserId']);
     Route::get('/hotel/{id}', [BookingController::class, 'getBookingByHotelId']);
+});
+
+Route::middleware(['auth:sanctum', 'verified', 'role:user'])->prefix('bookings')->group(function () {
+    Route::get('/user/{id}', [BookingController::class, 'getBookingByUserId']);
 });
 
 // Booking Detail API
@@ -168,7 +169,7 @@ Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('booking-d
 
 
 // Payment API
-Route::middleware(['auth:sanctum', 'verified','role:user'])->prefix('payments')->group(
+Route::middleware(['auth:sanctum', 'verified', 'role:user'])->prefix('payments')->group(
     function () {
         Route::get('', [PaymentController::class, 'index']);
         Route::get('/{id}', [PaymentController::class, 'show']);
