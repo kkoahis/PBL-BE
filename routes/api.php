@@ -124,8 +124,21 @@ Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('rooms')->
     Route::put('/hotel/{id}', [RoomController::class, 'restoreByHotelId']);
 });
 
+Route::prefix('category-images')->group(function () {
+    Route::get('/', [categoryImageController::class, 'index']);
+    Route::get('/{id}', [categoryImageController::class, 'show']);
+    Route::get('/category/{id}', [categoryImageController::class, 'getImageBycategoryId']);
+});
 
+// Category Image API
+Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('category-images')->group(function () {
+    Route::post('/', [categoryImageController::class, 'store']);
+    Route::put('/{id}', [categoryImageController::class, 'update']);
+    Route::delete('/{id}', [categoryImageController::class, 'destroy']);
 
+    Route::delete('/category/{id}', [categoryImageController::class, 'deleteByCategoryId']);
+    Route::put('/category/{id}', [categoryImageController::class, 'restoreBycategoryId']);
+});
 
 // Booking API
 Route::middleware(['auth:sanctum', 'verified', 'role:user,hotel'])->prefix('bookings')->group(function () {
