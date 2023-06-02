@@ -54,6 +54,10 @@ class HotelImageController extends BaseController
             if ($hotel->created_by != $user->id) {
                 return $this->sendError('You are not authorized to add image to this hotel.');
             }
+            // count hotel image if more than 5, then send error response
+            if (count($hotel->hotelImage) >= 5) {
+                return $this->sendError('Hotel image cannot more than 5.');
+            }
         }
 
         if ($validator->fails()) {
