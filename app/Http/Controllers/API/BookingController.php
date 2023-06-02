@@ -101,6 +101,7 @@ class BookingController extends BaseController
         DB::beginTransaction();
 
         try {
+            // kiểm tra xem ngày đặt phòng có trùng với ngày đặt phòng của người khác hay không
             $conflictingBooking = BookingDetail::where('room_id', $input['room_id'])
                 ->where(function ($query) use ($checkIn, $checkOut) {
                     $query->whereBetween('date_in', [$checkIn, $checkOut])
