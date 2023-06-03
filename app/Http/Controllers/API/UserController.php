@@ -97,7 +97,7 @@ class UserController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'role' => 'required|string|in:admin,hotel'
+                'role' => 'required|string|in:admin,hotel,user'
             ]);
 
             if ($validator->fails()) {
@@ -123,9 +123,25 @@ class UserController extends Controller
     public function getAllUser()
     {
         try {
-            $users = User::all();
+            // paginate user with out role admin
+            $users = User::where('role', '!=', 'admin')->paginate(10);
 
             return response()->json($users);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getUserById($id)
+    {
+        try {
+            $user = User::find($id);
+
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            }
+
+            return response()->json($user);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
