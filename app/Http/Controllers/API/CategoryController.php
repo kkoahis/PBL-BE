@@ -67,13 +67,10 @@ class CategoryController extends BaseController
 
         $user = Auth::user();
 
-        if ($user->role == 'admin') {
-            $hotel = Hotel::firstOrFail($input['hotel_id']);
-            if (is_null($hotel)) {
-                return $this->sendError('Hotel ID not found.');
-            }
-        } else {
-            // get hotel id from input id, then check if hotel is created by user
+        if ($user->role != 'hotel') {
+            return $this->sendError('You are not authorized to add category to this hotel.');
+        }
+        if ($user->role == 'hotel') {
             $hotel = Hotel::where('created_by', $user->id)->find($input['hotel_id']);
             if (is_null($hotel)) {
                 return $this->sendError('You are not authorized to add category to this hotel.');
@@ -139,17 +136,13 @@ class CategoryController extends BaseController
         $category->is_smoking = $input['is_smoking'];
 
         $user = Auth::user();
-        if ($user->role == 'admin') {
-            // get hotel id from input id from request id url
-            $hotel = Hotel::firstOrFail($category->hotel_id);
-            if (is_null($hotel)) {
-                return $this->sendError('Hotel ID not found.');
-            }
-        } else {
-            // get hotel id from input id, then check if hotel is created by user
+        if ($user->role != 'hotel') {
+            return $this->sendError('You are not authorized to update category to this hotel.');
+        }
+        if ($user->role == 'hotel') {
             $hotel = Hotel::where('created_by', $user->id)->find($category->hotel_id);
             if (is_null($hotel)) {
-                return $this->sendError('You are not authorized to add category to this hotel.');
+                return $this->sendError('You are not authorized to update category to this hotel.');
             }
         }
 
@@ -172,17 +165,13 @@ class CategoryController extends BaseController
 
         $user = Auth::user();
 
-        if ($user->role == 'admin') {
-            // get hotel id from input id from request id url
-            $hotel = Hotel::firstOrFail($category->hotel_id);
-            if (is_null($hotel)) {
-                return $this->sendError('Hotel ID not found.');
-            }
-        } else {
-            // get hotel id from input id, then check if hotel is created by user
+        if ($user->role != 'hotel') {
+            return $this->sendError('You are not authorized to delete category to this hotel.');
+        }
+        if ($user->role == 'hotel') {
             $hotel = Hotel::where('created_by', $user->id)->find($category->hotel_id);
             if (is_null($hotel)) {
-                return $this->sendError('You are not authorized to add category to this hotel.');
+                return $this->sendError('You are not authorized to delete category to this hotel.');
             }
         }
 
@@ -209,23 +198,19 @@ class CategoryController extends BaseController
     {
         $category = Category::where('hotel_id', $id)->get();
 
-        if (is_null($category)) {
+        if ($category->count() == 0) {
             return $this->sendError('Category not found.');
         }
 
         $user = Auth::user();
 
-        if ($user->role == 'admin') {
-            // get hotel id from input id from request id url
-            $hotel = Hotel::firstOrFail($id);
-            if (is_null($hotel)) {
-                return $this->sendError('Hotel ID not found.');
-            }
+        if ($user->role != 'hotel') {
+            return $this->sendError('You are not authorized to delete category to this hotel.');
         } else {
             // get hotel id from input id, then check if hotel is created by user
             $hotel = Hotel::where('created_by', $user->id)->find($id);
             if (is_null($hotel)) {
-                return $this->sendError('You are not authorized to add category to this hotel.');
+                return $this->sendError('You are not authorized to delete category to this hotel.');
             }
         }
 
@@ -269,17 +254,13 @@ class CategoryController extends BaseController
         }
 
         $user = Auth::user();
-        if ($user->role == 'admin') {
-            // get hotel id from input id from request id url
-            $hotel = Hotel::firstOrFail($category->hotel_id);
-            if (is_null($hotel)) {
-                return $this->sendError('Hotel ID not found.');
-            }
+        if ($user->role != 'hotel') {
+            return $this->sendError('You are not authorized to restore category to this hotel.');
         } else {
             // get hotel id from input id, then check if hotel is created by user
             $hotel = Hotel::where('created_by', $user->id)->find($category->hotel_id);
             if (is_null($hotel)) {
-                return $this->sendError('You are not authorized to add category to this hotel.');
+                return $this->sendError('You are not authorized to restore category to this hotel.');
             }
         }
 
@@ -324,12 +305,8 @@ class CategoryController extends BaseController
 
             $user = Auth::user();
 
-            if ($user->role == 'admin') {
-                // get hotel id from input id from request id url
-                $hotel = Hotel::firstOrFail($id);
-                if (is_null($hotel)) {
-                    return $this->sendError('Hotel ID not found.');
-                }
+            if ($user->role != 'hotel') {
+                return $this->sendError('You are not authorized to add category to this hotel.');
             } else {
                 // get hotel id from input id, then check if hotel is created by user
                 $hotel = Hotel::where('created_by', $user->id)->find($id);
@@ -510,10 +487,39 @@ class CategoryController extends BaseController
             $category = Category::where('hotel_id', $hotel_id)->get()->pluck('id');
             $allRoom = Room::whereIn('category_id', $category)->get()->pluck('id');
 
+            // get booking detail with date_in and date_out and status not pending
             $bookingDetail = BookingDetail::where('date_in', '<=', $date_in)
                 ->where('date_out', '>=', $date_out)
                 ->whereIn('room_id', $allRoom)
                 ->get();
+            // get not get booking detail that soft deleted
+
+
+            if ($bookingDetail->count() == 0) {
+                $roomAvailable = Room::whereIn('id', $allRoom)->get();
+                $categoryDisplay = [];
+                $roomCountPerDisplay = [];
+                $roomIDPerDisplay = [];
+
+                foreach ($category as $key => $value) {
+                    $categoryDisplay[$key] = Category::find($value);
+                    $roomCountPerDisplay[$key] = $roomAvailable->where('category_id', $value)->count();
+                    $roomIDPerDisplay[$key] = $roomAvailable->where('category_id', $value)->pluck('id');
+                }
+
+                $data = [
+                    'category' => $categoryDisplay,
+                    'roomCountPerDisplay' => $roomCountPerDisplay,
+                    'roomIDPerDisplay' => $roomIDPerDisplay,
+                ];
+
+                return response()->json(([
+                        'success' => true,
+                        'message' => 'Category retrieved successfully.',
+                        'data' => $data,
+                    ])
+                );
+            }
 
             $roomBooked = $bookingDetail->pluck('room_id');
 

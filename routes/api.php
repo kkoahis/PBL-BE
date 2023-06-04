@@ -31,16 +31,10 @@ Route::controller(UserController::class)->group(function () {
 });
 
 // Route updateRole for admin by email input field
-Route::middleware(['auth:sanctum', 'verified', 'role:admin'])->prefix('users')->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin'])->prefix('users')->group(function () {
     Route::put('/role/{email}', [UserController::class, 'updateRole']);
     // getAllUser
     Route::get('/allUser', [UserController::class, 'getAllUser']);
-});
-
-Route::prefix('hotel-images')->group(function () {
-    Route::get('/', [HotelImageController::class, 'index']);
-    Route::get('/{id}', [HotelImageController::class, 'show']);
-    Route::get('/hotel/{id}', [HotelImageController::class, 'getImageByHotelId']);
 });
 
 Route::prefix('hotels')->group(function () {
@@ -58,7 +52,7 @@ Route::prefix('hotels')->group(function () {
 });
 
 // Hotels API 
-Route::middleware(['auth:sanctum', 'verified', 'role:hotel,admin'])->prefix('hotels')->group(function () {
+Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('hotels')->group(function () {
     Route::post('/', [HotelController::class, 'store']);
     Route::put('/{id}', [HotelController::class, 'update']);
     Route::delete('/{id}', [HotelController::class, 'destroy']);
@@ -101,29 +95,6 @@ Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('categorie
     Route::put('/price/{id}', [CategoryController::class, 'updatePriceByCategoryId']);
 });
 
-Route::prefix('rooms')->group(function () {
-    // CountRoomByCategoryId
-    Route::get('count/hotel/{id}', [RoomController::class, 'countRoomByCategoryId']);
-    // getAllPriceByHotelId
-    Route::get('/price/hotel/{id}', [RoomController::class, 'getAllPriceByHotelId']);
-    // get price by room id
-    Route::get('/price/{id}', [RoomController::class, 'getPriceByRoomId']);
-    Route::get('/hotel/{id}', [RoomController::class, 'getRoomByHotelId']);
-    Route::get('/', [RoomController::class, 'index']);
-    Route::get('/{id}', [RoomController::class, 'show']);
-});
-
-// Room API
-Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('rooms')->group(function () {
-    Route::post('/', [RoomController::class, 'store']);
-    Route::put('/{id}', [RoomController::class, 'update']);
-    Route::delete('/{id}', [RoomController::class, 'destroy']);
-
-    Route::put('/restore/{id}', [RoomController::class, 'restore']);
-    Route::put('/category/{id}', [RoomController::class, 'restoreByCategoryId']);
-    Route::put('/hotel/{id}', [RoomController::class, 'restoreByHotelId']);
-});
-
 Route::prefix('category-images')->group(function () {
     Route::get('/', [CategoryImageController::class, 'index']);
     Route::get('/{id}', [CategoryImageController::class, 'show']);
@@ -140,19 +111,44 @@ Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('category-
     Route::put('/category/{id}', [CategoryImageController::class, 'restoreBycategoryId']);
 });
 
-// Booking API
-Route::middleware(['auth:sanctum', 'verified', 'role:user,hotel'])->prefix('bookings')->group(function () {
-    // Route::get('', [BookingController::class, 'index']);
-    Route::get('/{id}', [BookingController::class, 'show']);
-    Route::post('/', [BookingController::class, 'store']);
-    Route::put('/{id}', [BookingController::class, 'update']);
-    Route::delete('/{id}', [BookingController::class, 'destroy']);
-
-    Route::get('/hotel/{id}', [BookingController::class, 'getBookingByHotelId']);
+Route::prefix('rooms')->group(function () {
+    // CountRoomByCategoryId
+    Route::get('count/hotel/{id}', [RoomController::class, 'countRoomByCategoryId']);
+    Route::get('/', [RoomController::class, 'index']);
+    Route::get('/{id}', [RoomController::class, 'show']);
 });
 
+// Room API
+Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('rooms')->group(function () {
+    Route::post('/', [RoomController::class, 'store']);
+    Route::put('/{id}', [RoomController::class, 'update']);
+    Route::delete('/{id}', [RoomController::class, 'destroy']);
+
+    Route::put('/restore/{id}', [RoomController::class, 'restore']);
+    Route::put('/category/{id}', [RoomController::class, 'restoreByCategoryId']);
+    Route::put('/hotel/{id}', [RoomController::class, 'restoreByHotelId']);
+});
+
+// Booking API
+Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('bookings')->group(function () {
+    // Route::get('', [BookingController::class, 'index']);
+    // Route::get('/{id}', [BookingController::class, 'show']);
+    // Route::put('/{id}', [BookingController::class, 'update']);
+    // Route::delete('/{id}', [BookingController::class, 'destroy']);
+
+    Route::get('/hotel/{id}', [BookingController::class, 'getBookingByHotelId']);
+    Route::get('/hotel/past/{id}', [BookingController::class, 'getBookingByHotelIdPast']);
+    // acceptBooking
+    Route::put('/accept/{id}', [BookingController::class, 'acceptBooking']);
+    // cancelBooking
+    Route::put('/reject/{id}', [BookingController::class, 'rejectBooking']);
+});
+
+
 Route::middleware(['auth:sanctum', 'verified', 'role:user'])->prefix('bookings')->group(function () {
+    Route::post('/', [BookingController::class, 'store']);
     Route::get('/user/{id}', [BookingController::class, 'getBookingByUserId']);
+    Route::get('/user/past/{id}', [BookingController::class, 'getBookingByUserIdPast']);
 });
 
 // Booking Detail API

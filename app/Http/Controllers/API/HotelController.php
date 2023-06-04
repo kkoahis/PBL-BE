@@ -45,6 +45,11 @@ class HotelController extends BaseController
 
     public function store(Request $request)
     {
+        $user = Auth::user();
+        if ($user->role != 'hotel') {
+            return $this->sendError('You are not authorized to create hotel.');
+        }
+        
         $input = $request->all();
         $validator = Validator::make($input, [
             'name' => 'required',
@@ -101,10 +106,7 @@ class HotelController extends BaseController
         $hotel->nation = $input['nation'];
         $hotel->price = $input['price'];
 
-        $user = Auth::user();
-        if ($user->role != 'hotel') {
-            return $this->sendError('You are not authorized to create hotel.');
-        }
+        
         $hotel->created_by = $user->id;
 
         // dd($hotel->created_by);
@@ -153,7 +155,6 @@ class HotelController extends BaseController
         if (is_null($hotel)) {
             return $this->sendError('Hotel not found.');
         }
-
         if ($user->id != $hotel->created_by) {
             return $this->sendError('You are not authorized to update this hotel.');
         } else {
@@ -289,7 +290,6 @@ class HotelController extends BaseController
         if (is_null($hotel)) {
             return $this->sendError('Hotel not found.');
         }
-
         if ($user->id != $hotel->created_by) {
             return $this->sendError('You are not authorized to restore this hotel.');
         } else {

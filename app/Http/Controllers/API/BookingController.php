@@ -9,6 +9,7 @@ use App\Http\Resources\BookingResource;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Booking;
 use App\Models\BookingDetail;
+use App\Models\Hotel;
 use App\Models\Room;
 use Carbon\Carbon;
 use Exception;
@@ -23,23 +24,28 @@ class BookingController extends BaseController
     //     return $this->sendResponse(BookingResource::collection($booking), 'Booking retrieved successfully.');
     // }
 
-    public function show($id)
-    {
-        $booking = Booking::find($id);
+    // public function show($id)
+    // {
+    //     $booking = Booking::find($id);
 
-        $user = $booking->user;
+    //     $user = $booking->user;
 
-        if (is_null($booking)) {
-            return $this->sendError('Booking not found.');
-        }
+    //     if (is_null($booking)) {
+    //         return $this->sendError('Booking not found.');
+    //     }
 
-        return $this->sendResponse(new BookingResource($booking), 'Booking retrieved successfully.');
-    }
+    //     return $this->sendResponse(new BookingResource($booking), 'Booking retrieved successfully.');
+    // }
 
     public function store(Request $request)
     {
-        $input = $request->all();
         $user = Auth::user();
+        // if role hotel or admin, return error
+        if ($user->role == 'hotel' || $user->role == 'admin') {
+            return $this->sendError('You do not have permission to create booking.');
+        }
+
+        $input = $request->all();
 
         $validator = Validator::make($input, [
             // 'user_id' => 'required|exists:users,id,deleted_at,NULL',
@@ -160,7 +166,8 @@ class BookingController extends BaseController
             }
 
             $booking->total_amount = $totalAmount;
-            
+            $booking->save();
+
             $currentDate = Carbon::now()->format('Y-m-d');
             $bookingDetails = BookingDetail::whereDate('date_in', $currentDate)->get();
 
@@ -195,13 +202,25 @@ class BookingController extends BaseController
                 'booking_detail' => $booking->bookingDetail()->get(),
                 'payment' => $booking->payment()->get(),
                 'category' => $booking->hotel()->first()->category()->first(),
-                'room' => $booking->bookingDetail()->first()->room()->first(),
+                // 'room' => $booking->bookingDetail()->first()->room()->first(),
             ]
         ], 200);
     }
 
     public function update(Request $request, $id)
     {
+        $user = Auth::user();
+        $created_by = Hotel::find($id);
+        if($created_by == null) {
+            return $this->sendError('Hotel not found.');
+        }
+        if($user->role != 'hotel') {
+            return $this->sendError('You are not authorized to do this action.');
+        }
+        if($user->id != $created_by->created_by) {
+            return $this->sendError('You are not authorized to do this action.');
+        }
+
         $input = $request->all();
         $validator = Validator::make($input, [
             // 'user_id' => 'required',
@@ -243,6 +262,19 @@ class BookingController extends BaseController
 
     public function destroy($id)
     {
+        $user = Auth::user();
+        $created_by = Hotel::find($id);
+        if($created_by == null) {
+            return $this->sendError('Hotel not found.');
+        }
+        if($user->role != 'hotel') {
+            return $this->sendError('You are not authorized to do this action.');
+        }
+        if($user->id != $created_by->created_by) {
+            return $this->sendError('You are not authorized to do this action.');
+        }
+
+
         $booking = Booking::find($id);
         if (is_null($booking)) {
             return $this->sendError('Booking not found.');
@@ -269,37 +301,51 @@ class BookingController extends BaseController
 
     public function getBookingByHotelId($id)
     {
-        $booking = Booking::where('hotel_id', $id)->get();
+        $user = Auth::user();
+        $created_by = Hotel::find($id);
+        if($created_by == null) {
+            return $this->sendError('Hotel not found.');
+        }
+        if($user->role != 'hotel') {
+            return $this->sendError('You are not authorized to do this action.');
+        }
+        if($user->id != $created_by->created_by) {
+            return $this->sendError('You are not authorized to do this action.');
+        }
+
+        // paginate and get status = pending
+        $booking = Booking::where('hotel_id', $id)->where('status', 'pending')->paginate(10);
+
+        foreach ($booking as $key => $value) {
+            $bookingItem[] = [
+                [
+                    'booking' => $value,
+                    'user' => $value->user()->first(),
+                    'category' => $value->hotel()->first()->category()->first(),
+                ]
+            ];
+        }
+
+        // for and dd($bookingItem);
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking retrieved successfully.',
+            'data' => $bookingItem
+        ], 200);
+
+        // get 
+        foreach ($booking as $key => $value) {
+            $bookingItem[] = [
+                'booking' => $value,
+                'booking_detail' => $value->bookingDetail()->get(),
+                'payment' => $value->payment()->get(),
+                'category' => $value->hotel()->first()->category()->first(),
+                // 'room' => $value->bookingDetail()->first()->room()->first(),
+            ];
+        }
 
         if (is_null($booking)) {
             return $this->sendError('Booking not found.');
-        }
-
-        $user = Auth::user();
-
-        // if role is hotel -> can view booking of that hotel
-        if ($user->role != 'hotel') {
-            return $this->sendError('You are not allowed to view booking of hotel.');
-        }
-
-        if (count($booking) == 0) {
-            return $this->sendError('Booking not found.');
-        } else {
-            return $this->sendResponse(BookingResource::collection($booking), 'Booking retrieved successfully.');
-        }
-    }
-
-    public function getBookingByUserid($id)
-    {
-        $booking = Booking::where('user_id', $id)->with('payment', 'bookingDetail.room.category')->paginate(20);
-        if (is_null($booking)) {
-            return $this->sendError('Booking not found.');
-        }
-
-        $user = Auth::user();
-
-        if ($user->id != $id) {
-            return $this->sendError('You can not get booking of another user.');
         }
 
         if (count($booking) == 0) {
@@ -311,5 +357,208 @@ class BookingController extends BaseController
                 'data' => $booking
             ], 200);
         }
+    }
+
+    public function getBookingByUserid($id)
+    {
+        $user = Auth::user();
+        if($user->role != 'user') {
+            return $this->sendError('You are not authorized to do this action.');
+        }
+        if($user->id != $id) {
+            return $this->sendError('You are not get booking of another user.');
+        }
+
+
+        $booking = Booking::where('user_id', $id)->paginate(10);
+
+        if (is_null($booking)) {
+            return $this->sendError('Booking not found.');
+        }
+
+        foreach ($booking as $key => $value) {
+            $bookingItem[] = [
+                [
+                    'booking' => $value,
+                    'payment' => $value->payment()->get(),
+                    'category' => $value->hotel()->first()->category()->first(),
+                ]
+            ];
+        }
+
+        if (count($booking) == 0) {
+            return $this->sendError('Booking not found.');
+        } else {
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking retrieved successfully.',
+                'data' => $bookingItem
+            ], 200);
+        }
+    }
+
+    public function getBookingByUserIdPast($id)
+    {
+        $user = Auth::user();
+        if($user->role != 'user') {
+            return $this->sendError('You are not authorized to do this action.');
+        }
+        if ($user->id != $id) {
+            return $this->sendError('You can not get booking of another user.');
+        }
+
+        $booking = Booking::where('user_id', $id)->where('date_out', '<', Carbon::now())->paginate(20);
+
+        if (is_null($booking)) {
+            return $this->sendError('Booking not found.');
+        }
+
+        foreach ($booking as $key => $value) {
+            $bookingItem[] = [
+                [
+                    'booking' => $value,
+                    'payment' => $value->payment()->get(),
+                    'category' => $value->hotel()->first()->category()->first(),
+                ]
+            ];
+        }
+
+        if (count($booking) == 0) {
+            return $this->sendError('Booking not found.');
+        } else {
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking retrieved successfully.',
+                'data' => $bookingItem
+            ], 200);
+        }
+    }
+
+    public function getBookingByHotelIdPast($id)
+    {
+        $user = Auth::user();
+        $created_by = Hotel::find($id);
+        if($created_by == null) {
+            return $this->sendError('Hotel not found.');
+        }
+        if($user->role != 'hotel') {
+            return $this->sendError('You are not authorized to do this action.');
+        }
+        if($user->id != $created_by->created_by) {
+            return $this->sendError('You are not authorized to do this action.');
+        }
+
+        $booking = Booking::where('hotel_id', $id)->where('date_out', '<', Carbon::now())->paginate(20);
+
+        if (is_null($booking)) {
+            return $this->sendError('Booking not found.');
+        }
+
+        foreach ($booking as $key => $value) {
+            $bookingItem[] = [
+                [
+                    'booking' => $value,
+                    'payment' => $value->payment()->get(),
+                    'category' => $value->hotel()->first()->category()->first(),
+                ]
+            ];
+        }
+
+        if (count($booking) == 0) {
+            return $this->sendError('Booking not found.');
+        } else {
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking retrieved successfully.',
+                'data' => $bookingItem,
+            ], 200);
+        }
+    }
+
+    public function acceptBooking($id)
+    {
+        $user = Auth::user();
+        if ($user->role != 'hotel') {
+            return $this->sendError('You are not authorized to do this action.');
+        }
+        // can not accept booking of another hotel
+        $booking = Booking::find($id);
+        if ($booking == null) {
+            return $this->sendError('Booking not found.');
+        }
+        $hotel = Hotel::find($booking->hotel_id);
+        $created_by = $hotel->created_by;
+        if ($created_by != $user->id) {
+            return $this->sendError('You can not accept booking of another hotel.');
+        }
+
+        // find booking with status = pending and id = $id
+        $booking = Booking::where('id', $id)->where('status', 'pending')->first();
+
+        if (is_null($booking)) {
+            return $this->sendError('Booking not found.');
+        }
+        if ($booking->status == 'accepted') {
+            return $this->sendError('Booking already accepted.');
+        }
+
+        $booking->status = 'accepted';
+        $booking->save();
+
+        if ($booking) {
+            // update status in booking detail
+            $bookingDetail = $booking->bookingDetail()->get();
+            foreach ($bookingDetail as $key => $value) {
+                $value->status = 'accepted';
+                $value->save();
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking accepted successfully.',
+            'data' => $booking
+        ], 200);
+    }
+
+    public function rejectBooking($id)
+    {
+        $user = Auth::user();
+        if ($user->role != 'hotel') {
+            return $this->sendError('You are not authorized to do this action.');
+        }
+        // can not accept booking of another hotel
+        $booking = Booking::find($id);
+        if ($booking == null) {
+            return $this->sendError('Booking not found.');
+        }
+        $hotel = Hotel::find($booking->hotel_id);
+        $created_by = $hotel->created_by;
+        if ($created_by != $user->id) {
+            return $this->sendError('You can not reject booking of another hotel.');
+        }
+
+        // find booking with status = pending and id = $id
+        $booking = Booking::where('id', $id)->where('status', 'pending')->first();
+
+        if (is_null($booking)) {
+            return $this->sendError('Booking not found.');
+        }
+        if ($booking->status == 'rejected') {
+            return $this->sendError('Booking already rejected.');
+        }
+
+        $booking->status = 'rejected';
+        $booking->save();
+
+        if ($booking) {
+            // delete booking detail
+            $bookingDetail = $booking->bookingDetail()->get();
+            foreach ($bookingDetail as $key => $value) {
+                $value->forceDelete();
+            }
+        }
+
+        return $this->sendResponse(new BookingResource($booking), 'Booking rejected successfully.');
     }
 }

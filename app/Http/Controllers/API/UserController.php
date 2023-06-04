@@ -96,6 +96,11 @@ class UserController extends Controller
     public function updateRole(Request $request, $email)
     {
         try {
+            $user = Auth::user();
+            if ($user->role != 'admin') {
+                return response()->json(['error' => 'You are not authorized to perform this action'], 403);
+            }
+
             $validator = Validator::make($request->all(), [
                 'role' => 'required|string|in:admin,hotel,user'
             ]);
@@ -123,25 +128,15 @@ class UserController extends Controller
     public function getAllUser()
     {
         try {
+            $user = Auth::user();
+            if ($user->role != 'admin') {
+                return response()->json(['error' => 'You are not authorized to perform this action'], 403);
+            }
+
             // paginate user with out role admin
             $users = User::where('role', '!=', 'admin')->paginate(10);
 
             return response()->json($users);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
-
-    public function getUserById($id)
-    {
-        try {
-            $user = User::find($id);
-
-            if (!$user) {
-                return response()->json(['error' => 'User not found'], 404);
-            }
-
-            return response()->json($user);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
