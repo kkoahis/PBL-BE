@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Auth\Access\Gate;
 use Illuminate\Support\Str;
 
+use function PHPUnit\Framework\isNull;
 
 class UserController extends Controller
 {
@@ -139,6 +140,105 @@ class UserController extends Controller
             return response()->json($users);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getProfile($id)
+    {
+        try {
+            $user = Auth::user();
+
+            if($user->id != $id){
+                return response()->json(['error' => 'You are not authorized to perform this action'], 403);
+            }
+
+            $user = User::find($id);
+
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            }
+
+            return response()->json([
+                "name" => $user->name,
+                "phone number" => $user->phone,
+                "address" => $user->address,
+                "date of birth" => $user->date_of_birth,
+                "avatar" => $user->avatar,
+                "gender" => $user->gender,
+                "created_at" => $user->created_at,
+                "email" => $user->email,
+                "role" => $user->role,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function editProfile(Request $request, $id){
+        $input = $request->all();
+        $user = Auth::user();
+        if($user->id != $id){
+            return response()->json(['error' => 'You are not authorized to perform this action'], 403);
+        }
+
+        $validator = Validator::make($input, [
+            'name' => 'string|min:1|max:255',
+            'phone_number' =>  'regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
+            'gender' => 'in:0,1',
+            'date_of_birth' => 'date_format:Y-m-d',
+            'avatar' ,
+            'address' => 'string|min:1|max:255',
+            'password' => 'required|regex:/^(?=.*[A-Z])(?=.*\d).+$/',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->messages(), 400);
+        }
+
+        $userModel = User::find($id);
+
+        if (!$userModel) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        // if user not change avatar, keep old avatar
+        if($request->hasFile('avatar')){
+            $avatar = $request->file('avatar');
+            $avatarName = time().'.'.$avatar->getClientOriginalExtension();
+            $avatar->move(public_path('images'), $avatarName);
+            $userModel->avatar = $avatarName;
+        }
+        
+
+        $userModel->name = $input['name'];
+        $userModel->phone_number = $input['phone_number'];
+        $userModel->gender = $input['gender'];
+        $userModel->date_of_birth = $input['date_of_birth'];
+        // date of birth not in the past
+        if($userModel->date_of_birth > date('Y-m-d')){
+            return response()->json(['error' => 'Date of birth must be in the past'], 400);
+        }
+        if(isNull($userModel->avatar)){
+            $userModel->avatar = 'https://static.vecteezy.com/system/resources/previews/009/734/564/original/default-avatar-profile-icon-of-social-media-user-vector.jpg';
+        }
+        $userModel->address = $input['address'];
+        $userModel->password = Hash::make($input['password']);
+
+        $userModel->save();
+
+        if($userModel->save()){
+            return response()->json(([
+                'success' => true,
+                'message' => 'User updated successfully',
+                'data' => $userModel
+            ]), 200);
+        }
+        else{
+            return response()->json(([
+                'success' => false,
+                'message' => 'User updated failed',
+                'data' => $userModel
+            ]), 400);
         }
     }
 }

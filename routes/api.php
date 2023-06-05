@@ -31,10 +31,12 @@ Route::controller(UserController::class)->group(function () {
 });
 
 // Route updateRole for admin by email input field
-Route::middleware(['auth:sanctum', 'role:admin'])->prefix('users')->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin'])->prefix('users')->group(function () 
+{
     Route::put('/role/{email}', [UserController::class, 'updateRole']);
-    // getAllUser
     Route::get('/allUser', [UserController::class, 'getAllUser']);
+    Route::get('/profile/{id}', [UserController::class, 'getProfile']);
+    Route::put('/editProfile/{id}', [UserController::class, 'editProfile']);
 });
 
 Route::prefix('hotels')->group(function () {
