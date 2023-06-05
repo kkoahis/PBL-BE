@@ -9,12 +9,14 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Http\Resources\BookingResource;
+use App\Models\Booking;
 use App\Models\BookingDetail;
 use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
 use Monolog\Handler\SendGridHandler;
 use PhpParser\Node\Expr\FuncCall;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 use function PHPUnit\Framework\isNull;
 
@@ -139,8 +141,8 @@ class HotelController extends BaseController
             'bathrooms | numeric',
             'amenities',
             'Safety_Hygiene',
-            'check_in | date',
-            'check_out | date',
+            // 'check_in | date',
+            // 'check_out | date',
             'guests | numeric',
             'city',
             'nation',
@@ -569,6 +571,43 @@ class HotelController extends BaseController
         if (is_null($hotel)) {
             return $this->sendError('Hotel not found.');
         }
+        return response()->json(([
+            'success' => true,
+            'message' => 'Hotel retrieved successfully.',
+            'data' => $hotel,
+        ]
+        ));
+    }
+
+    public function getHotelNearby(){
+        // get 7 hotel nearby City = Da Nang
+        $hotel = Hotel::orderBy('id', 'asc')->where('city', 'like', '%' . 'Da Nang' . '%')->with('hotelImage')->paginate(7);
+
+        if (is_null($hotel)) {
+            return $this->sendError('Hotel not found.');
+        }
+
+        return response()->json(([
+            'success' => true,
+            'message' => 'Hotel retrieved successfully.',
+            'data' => $hotel,
+        ]
+        ));
+    }
+
+    public function getHotelTopBooked(){
+        // get 7 hotel top booked
+        $hotelBooked = Booking::select('hotel_id', DB::raw('count(*) as total'))->groupBy('hotel_id')->orderBy('total', 'desc')->limit(7)->get();
+
+        $hotel = array();
+        foreach ($hotelBooked as $key => $value) {
+            $hotel[$key] = Hotel::where('id', $value->hotel_id)->with('hotelImage')->first();
+        } 
+
+        if (is_null($hotel)) {
+            return $this->sendError('Hotel not found.');
+        }
+
         return response()->json(([
             'success' => true,
             'message' => 'Hotel retrieved successfully.',
