@@ -45,6 +45,8 @@ Route::prefix('hotels')->group(function () {
     Route::get('/prices', [HotelController::class, 'getHotelByPrice']);
     Route::get('/nearby', [HotelController::class, 'getHotelNearby']);
     Route::get('/top-booked', [HotelController::class, 'getHotelTopBooked']);
+    // getCityOfHotel
+    Route::get('/city', [HotelController::class, 'getCityOfHotel']);
     Route::get('/', [HotelController::class, 'index']);
     Route::get('/{id}', [HotelController::class, 'show']);
     Route::get('/name/{name}', [HotelController::class, 'getHotelByName']);

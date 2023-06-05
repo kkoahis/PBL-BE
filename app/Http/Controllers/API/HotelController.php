@@ -597,12 +597,28 @@ class HotelController extends BaseController
 
     public function getHotelTopBooked(){
         // get 7 hotel top booked
-        $hotelBooked = Booking::select('hotel_id', DB::raw('count(*) as total'))->groupBy('hotel_id')->orderBy('total', 'desc')->limit(7)->get();
+        $hotelBooked = Booking::select('hotel_id', DB::raw('count(*) as total'))->groupBy('hotel_id')->orderBy('total', 'desc')->limit(6)->get();
 
         $hotel = array();
         foreach ($hotelBooked as $key => $value) {
             $hotel[$key] = Hotel::where('id', $value->hotel_id)->with('hotelImage')->first();
         } 
+
+        if (is_null($hotel)) {
+            return $this->sendError('Hotel not found.');
+        }
+
+        return response()->json(([
+            'success' => true,
+            'message' => 'Hotel retrieved successfully.',
+            'data' => $hotel,
+        ]
+        ));
+    }
+
+    public function getCityOfHotel(){
+        // get 5 city of hotel
+        $hotel = Hotel::select('city')->groupBy('city')->orderBy('city', 'asc')->limit(5)->get();
 
         if (is_null($hotel)) {
             return $this->sendError('Hotel not found.');
