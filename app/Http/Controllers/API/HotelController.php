@@ -177,8 +177,8 @@ class HotelController extends BaseController
             $hotel->bathrooms = $input['bathrooms'];
             $hotel->amenities = $input['amenities'];
             $hotel->Safety_Hygiene = $input['Safety_Hygiene'];
-            $hotel->check_in = $input['check_in'];
-            $hotel->check_out = $input['check_out'];
+            // $hotel->check_in = $input['check_in'];
+            // $hotel->check_out = $input['check_out'];
             $hotel->guests = $input['guests'];
             $hotel->city = $input['city'];
             $hotel->nation = $input['nation'];
