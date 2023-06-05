@@ -617,8 +617,13 @@ class HotelController extends BaseController
     }
 
     public function getCityOfHotel(){
-        // get 5 city of hotel
-        $hotel = Hotel::select('city')->groupBy('city')->orderBy('city', 'asc')->limit(5)->get();
+        // get 5 city of hotel don't group by
+        $hotel = Hotel::select('city')->distinct()->limit(5)->get();
+
+        $item = array();
+        foreach ($hotel as $key => $value) {
+            $item[$key] = $value->city;
+        }
 
         if (is_null($hotel)) {
             return $this->sendError('Hotel not found.');
@@ -627,7 +632,7 @@ class HotelController extends BaseController
         return response()->json(([
             'success' => true,
             'message' => 'Hotel retrieved successfully.',
-            'data' => $hotel,
+            'data' => $item,
         ]
         ));
     }
@@ -646,6 +651,7 @@ class HotelController extends BaseController
         }
 
         if ($input['min_price'] == 0 && $input['max_price'] == 0) {
+            
             return $this->sendError('Min price and max price must be greater than 0.');
         }
 
