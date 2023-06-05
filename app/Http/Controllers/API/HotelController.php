@@ -581,7 +581,7 @@ class HotelController extends BaseController
 
     public function getHotelNearby(){
         // get 7 hotel nearby City = Da Nang
-        $hotel = Hotel::orderBy('id', 'asc')->where('city', 'like', '%' . 'Da Nang' . '%')->with('hotelImage')->paginate(7);
+        $hotel = Hotel::orderBy('id', 'asc')->where('city', 'like', '%' . 'Da Nang' . '%')->with('hotelImage')->limit(7)->get();
 
         if (is_null($hotel)) {
             return $this->sendError('Hotel not found.');
