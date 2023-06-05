@@ -631,4 +631,34 @@ class HotelController extends BaseController
         ]
         ));
     }
+
+    public function getHotelByPriceAndCity(Request $request)
+    {
+        $input = $request->all();
+        $validator = Validator::make($input, [
+            'min_price' => 'required|numeric',
+            'max_price' => 'required|numeric',
+            'city' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        if ($input['min_price'] == 0 && $input['max_price'] == 0) {
+            return $this->sendError('Min price and max price must be greater than 0.');
+        }
+
+        $hotel = Hotel::orderBy('price', 'asc')->whereBetween('price', [$input['min_price'], $input['max_price']])->where('city', 'like', '%' . $input['city'] . '%')->with('hotelImage')->paginate(20);
+
+        if (is_null($hotel)) {
+            return $this->sendError('Hotel not found.');
+        }
+        return response()->json(([
+            'success' => true,
+            'message' => 'Hotel retrieved successfully.',
+            'data' => $hotel,
+        ]
+        ));
+    }
 }

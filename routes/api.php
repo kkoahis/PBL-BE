@@ -42,10 +42,10 @@ Route::prefix('hotels')->group(function () {
     Route::get('/amenities', [HotelController::class, 'getHotelByAmenities']);
     Route::get('/rating', [HotelController::class, 'getHotelByRating']);
     Route::get('/guests', [HotelController::class, 'getHotelByGuests']);
+    Route::get('/prices&city', [HotelController::class, 'getHotelByPriceAndCity']);
     Route::get('/prices', [HotelController::class, 'getHotelByPrice']);
     Route::get('/nearby', [HotelController::class, 'getHotelNearby']);
     Route::get('/top-booked', [HotelController::class, 'getHotelTopBooked']);
-    // getCityOfHotel
     Route::get('/city', [HotelController::class, 'getCityOfHotel']);
     Route::get('/', [HotelController::class, 'index']);
     Route::get('/{id}', [HotelController::class, 'show']);
@@ -53,7 +53,6 @@ Route::prefix('hotels')->group(function () {
     Route::get('/address/{address}', [HotelController::class, 'getHotelByAddress']);
     Route::get('/city/{city}', [HotelController::class, 'getHotelByCity']);
     Route::get('/nation/{nation}', [HotelController::class, 'getHotelByNation']);
-    // getHotelTopBooked
 });
 
 // Hotels API 
