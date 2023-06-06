@@ -34,6 +34,8 @@ class CategoryResource extends JsonResource
             'updated_at' => $this->updated_at,
             
             'rooms' => $this->room,
+
+            'category_images' => $this->categoryImage,
         ];
     }
 }
