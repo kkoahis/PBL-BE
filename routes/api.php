@@ -26,8 +26,8 @@ use App\Http\Controllers\API\NewPasswordController;
 */
 
 Route::controller(NewPasswordController::class)->group(function () {
-    Route::post('forgot-password', [NewPasswordController::class, 'forgotPassword']);
-    Route::post('reset-password', [NewPasswordController::class, 'reset']);
+    Route::post('/forgot-password', [NewPasswordController::class, 'forgotPassword']);
+    Route::post('/reset-password', [NewPasswordController::class, 'reset']);
 });
 
 Route::controller(UserController::class)->group(function () {
