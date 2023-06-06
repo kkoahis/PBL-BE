@@ -15,7 +15,6 @@ class NewPasswordController extends Controller
 {
     public function forgotPassword(Request $request)
     {
-        dd($request->all());
         $request->validate([
             'email' => 'required|email',
         ]);
