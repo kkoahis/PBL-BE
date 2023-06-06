@@ -12,6 +12,7 @@ use App\Http\Controllers\API\ReviewController;
 use App\Http\Controllers\API\ReplyController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\CategoryImageController;
+use App\Http\Controllers\API\NewPasswordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,6 +24,11 @@ use App\Http\Controllers\API\CategoryImageController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+Route::controller(NewPasswordController::class)->group(function () {
+    Route::post('forgot-password', [NewPasswordController::class, 'forgotPassword']);
+    Route::post('reset-password', [NewPasswordController::class, 'reset']);
+});
 
 Route::controller(UserController::class)->group(function () {
     Route::post('/register', 'register');
