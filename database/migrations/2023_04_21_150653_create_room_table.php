@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('room', function (Blueprint $table) {
             $table->id();
             $table->foreignid('category_id')->constrained('category')->onDelete('cascade')->onUpdate('cascade');
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->boolean('status')->default(false);
 
             $table->timestamps();

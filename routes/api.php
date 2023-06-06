@@ -133,6 +133,7 @@ Route::prefix('rooms')->group(function () {
 
 // Room API
 Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('rooms')->group(function () {
+    Route::post('/count', [RoomController::class, 'storeWithCount']);
     Route::post('/', [RoomController::class, 'store']);
     Route::put('/{id}', [RoomController::class, 'update']);
     Route::delete('/{id}', [RoomController::class, 'destroy']);

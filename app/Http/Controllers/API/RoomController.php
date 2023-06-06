@@ -255,4 +255,46 @@ class RoomController extends BaseController
         }
         return response()->json($room);
     }
+
+    public function storeWithCount(Request $request)
+    {
+        $input = $request->all();
+
+        $validator = Validator::make($input, [
+            'category_id' => 'required',
+            'name',
+            'count' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $user = Auth::user();
+
+        if ($user->role == 'hotel') {
+            // get hotel id from input id
+            $category = Category::find($input['category_id']);
+            if (is_null($category)) {
+                return $this->sendError('Category ID not found.');
+            }
+            if ($category->hotel->created_by != $user->id) {
+                return $this->sendError('You are not authorized to create room to this hotel.');
+            }
+        }
+
+        $data = [];
+        for ($i = 0; $i < $input['count']; $i++) {
+            $data[] = [
+                'category_id' => $input['category_id'],
+                'name' => '',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        Room::insert($data);
+
+        return $this->sendResponse([], 'Room created successfully.'); 
+    }
 }
