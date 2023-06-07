@@ -11,6 +11,7 @@ use App\Http\Resources\PaymentResource;
 use App\Models\Booking;
 use App\Models\Hotel;
 use App\Models\User;
+use App\Notifications\BookingCreated;
 use Illuminate\Support\Facades\Auth;
 
 class PaymentController extends BaseController
@@ -83,23 +84,56 @@ class PaymentController extends BaseController
             return $this->sendError('Payment not found.');
         }
 
+        if ($payment->payment_status == 1) {
+            return $this->sendError('Payment already success.');
+        }
+
         $payment->payment_status = $input['payment_status'];
+        $payment->save();
 
         // if payment status is success
         if ($payment->payment_status == 1) {
             // update booking status
             $booking = $payment->booking;
+            if (is_null($booking)) {
+                return $this->sendError('Booking not found.');
+            }
             $booking->status = 'pending';
+            $booking->is_payment = 1;
+
+            // delete other booking that duplicate room_id and duplicate date_in and date_out
+            
+
             $booking->save();
+
+            $userHotel = $booking->hotel_id;
+            // get created_by from hotel
+            $created_by = Hotel::where('id', $userHotel)->first()->created_by;
+
+            // sent notification to hotel owner
+            $user = User::where('id', $created_by)->first();
+            $user->notify(new BookingCreated($booking));
 
             // also update booking detail status
             $booking_details = $booking->bookingDetail->map(function ($booking_detail) {
                 return $booking_detail;
             });
 
-            // update booking detail status
+            if (is_null($booking_details)) {
+                return $this->sendError('Booking detail not found.');
+            }
+
+            // update booking detail status and delete other booking detail that duplicate room_id and duplicate date_in and date_out
             foreach ($booking_details as $booking_detail) {
                 $booking_detail->status = 'pending';
+
+                // delete other booking detail that duplicate room_id and duplicate date_in and date_out
+                $booking_detail->where('room_id', $booking_detail->room_id)
+                    ->where('date_in', $booking_detail->date_in)
+                    ->where('date_out', $booking_detail->date_out)
+                    ->where('id', '!=', $booking_detail->id)
+                    ->forceDelete();
+
                 $booking_detail->save();
             }
 
