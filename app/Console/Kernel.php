@@ -12,15 +12,14 @@ class Kernel extends ConsoleKernel
     /**
      * Define the application's command schedule.
      */
+
+    protected $commands = [
+        Commands\PaymentDeleteCommand::class,
+    ];
+
     protected function schedule(Schedule $schedule)
     {
-        // using cron job to delete user that has not been verified in 24 hours
-        $schedule->call(function () {
-            $users = User::where('email_verified_at', null)->get();
-            foreach ($users as $user) {
-                $user->delete();
-            }
-        })->daily();
+        $schedule->command('app:payment-delete-command')->everyMinute();
     }
 
     /**
