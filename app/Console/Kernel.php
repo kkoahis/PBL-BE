@@ -19,7 +19,13 @@ class Kernel extends ConsoleKernel
 
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('app:payment-delete-command')->everyMinute();
+        // delete payment after 1 hour
+        $schedule->call(function () {
+            $payments = Payment::where('created_at', '<', now()->subHour())->get();
+            foreach ($payments as $payment) {
+                $payment->delete();
+            }
+        })->everyMinute();
     }
 
     /**
