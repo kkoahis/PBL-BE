@@ -15,13 +15,14 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->foreignId('booking_id')->constrained('booking')->onDelete('cascade')->onUpdate('cascade')->unique();
-            // QR
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
+            $table->string('email')->nullable();
+            $table->string('phone_number')->nullable();
             $table->longText('qr_code')->nullable();
             $table->longText('qr_code_url')->nullable();
-            // isPayment
             $table->boolean('payment_status')->default(false);
             $table->double('total_amount');
-            // discound
             $table->double('discount')->nullable();
         });
     }

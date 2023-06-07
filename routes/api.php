@@ -183,10 +183,10 @@ Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('booking-d
 // Payment API
 Route::middleware(['auth:sanctum', 'verified', 'role:user'])->prefix('payments')->group(
     function () {
-        Route::get('', [PaymentController::class, 'index']);
+        // Route::get('', [PaymentController::class, 'index']);
         Route::get('/{id}', [PaymentController::class, 'show']);
         Route::post('/', [PaymentController::class, 'store']);
-        Route::put('/{id}', [PaymentController::class, 'update']);
+        Route::put('/', [PaymentController::class, 'update']);
         Route::delete('/{id}', [PaymentController::class, 'destroy']);
 
         Route::get('/booking/{id}', [PaymentController::class, 'getPaymentByBookingId']);

@@ -495,7 +495,7 @@ class CategoryController extends BaseController
                 ->get();
             // get 'not get booking detail that soft deleted'
 
-
+            // if no booking detail, then all room is available
             if ($bookingDetail->count() == 0) {
                 $roomAvailable = Room::whereIn('id', $allRoom)->get();
                 $categoryDisplay = [];

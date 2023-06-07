@@ -161,11 +161,8 @@ class BookingController extends BaseController
 
             $booking->payment()->create([
                 'booking_id' => $booking->id,
-                // 'payment_type' => $input['payment_type'],
-                // 'is_payment' => $input['is_payment'],
                 'total_amount' => $booking->total_amount,
-                'qr_code' => 'https://buy.stripe.com/test_dR6g1ucrc6zWf7ybIL',
-                // 'payment_status' => 0,
+                'qr_code_url' => 'https://buy.stripe.com/test_dR6g1ucrc6zWf7ybIL',
             ]);
         }
 
@@ -288,7 +285,13 @@ class BookingController extends BaseController
         }
 
         // paginate and get status = pending
-        $booking = Booking::where('hotel_id', $id)->where('status', 'pending')->paginate(10);
+        $booking = Booking::where('hotel_id', $id)->where('status', 'pending')->get();
+
+        if($booking == null){
+            return $this->sendError('Booking not found.');
+        }
+
+        $bookingItem = [];
 
         foreach ($booking as $key => $value) {
             $bookingItem[] = [
@@ -344,7 +347,7 @@ class BookingController extends BaseController
         }
 
 
-        $booking = Booking::where('user_id', $id)->paginate(10);
+        $booking = Booking::where('user_id', $id)->where('status', 'accepted')->paginate(10);
 
         if (is_null($booking)) {
             return $this->sendError('Booking not found.');
@@ -381,7 +384,7 @@ class BookingController extends BaseController
             return $this->sendError('You can not get booking of another user.');
         }
 
-        $booking = Booking::where('user_id', $id)->where('date_out', '<', Carbon::now())->paginate(20);
+        $booking = Booking::where('user_id', $id)->where('date_out', '<', Carbon::now())->where('status', 'accepted')->paginate(10);
 
         if (is_null($booking)) {
             return $this->sendError('Booking not found.');

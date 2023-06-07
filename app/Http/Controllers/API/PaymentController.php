@@ -8,7 +8,10 @@ use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Payment;
 use App\Http\Resources\PaymentResource;
+use App\Models\Booking;
 use App\Models\Hotel;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class PaymentController extends BaseController
 {
@@ -53,38 +56,56 @@ class PaymentController extends BaseController
         return $this->sendResponse(new PaymentResource($payment), 'Payment created successfully.');
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
         $input = $request->all();
 
         $validator = Validator::make($input, [
-            // 'booking_id' => 'required',
-            'qr_code',
-            'qr_code_url',
-            'total_amount',
-            'payment_status',
-            'discount',
+            'booking_id' => 'required|exists:booking,id,deleted_at,NULL',
+            'payment_status' => 'required',
         ]);
 
         if ($validator->fails()) {
             return $this->sendError('Validation Error.', $validator->errors());
         }
 
-        $payment = Payment::find($id);
+        $booking_id = $input['booking_id'];
+        // search user_id by booking_id
+        $user_id = Booking::where('id', $booking_id)->first()->user_id;
+
+        if (Auth::user()->id != $user_id) {
+            return $this->sendError('You are not authorized to update this payment.');
+        }
+
+        $payment = Payment::where('booking_id', $booking_id)->first();
 
         if (is_null($payment)) {
             return $this->sendError('Payment not found.');
         }
 
-        // $payment->booking_id = $input['booking_id'];
-        $payment->qr_code = $input['qr_code'];
-        $payment->qr_code_url = $input['qr_code_url'];
-        $payment->total_amount = $input['total_amount'];
         $payment->payment_status = $input['payment_status'];
-        $payment->discount = $input['discount'];
-        $payment->save();
 
-        return $this->sendResponse(new PaymentResource($payment), 'Payment updated successfully.');
+        // if payment status is success
+        if ($payment->payment_status == 1) {
+            // update booking status
+            $booking = $payment->booking;
+            $booking->status = 'pending';
+            $booking->save();
+
+            // also update booking detail status
+            $booking_details = $booking->bookingDetail->map(function ($booking_detail) {
+                return $booking_detail;
+            });
+
+            // update booking detail status
+            foreach ($booking_details as $booking_detail) {
+                $booking_detail->status = 'pending';
+                $booking_detail->save();
+            }
+
+            return $this->sendResponse(new PaymentResource($payment), 'Payment updated successfully.');
+        }
+        return $this->sendError('Payment can not be updated.');
     }
 
     public function destroy($id)
