@@ -25,7 +25,7 @@ class Kernel extends ConsoleKernel
 
             $user = User::create([
                 'name' => 'admin',
-                'email' => 'test',
+                'email' => 'test' . rand(1, 100) . '@gmail.com',
                 'password' => 'testP123123',
             ]);
         })->everyMinute();
