@@ -2,6 +2,8 @@
 
 namespace App\Console;
 
+use App\Models\Payment;
+use App\Models\User;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -10,9 +12,18 @@ class Kernel extends ConsoleKernel
     /**
      * Define the application's command schedule.
      */
-    protected function schedule(Schedule $schedule): void
+    protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // delete payment if payment_status = 0 every 1 minute using call method
+        $schedule->call(function () {
+            // Payment::where('payment_status', 0)->delete();
+            // create new user every 1 minute using create method
+            User::create([
+                'name' => 'User ' . rand(1, 100),
+                'email' => 'user' . rand(1, 100) . '@gmail.com',
+                'password' => bcrypt('Password1'),
+            ]);
+        })->everyMinute();
     }
 
     /**
@@ -20,7 +31,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands(): void
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }
