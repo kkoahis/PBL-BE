@@ -13,18 +13,21 @@ class Kernel extends ConsoleKernel
      * Define the application's command schedule.
      */
 
-    protected $commands = [
-        Commands\PaymentDeleteCommand::class,
-    ];
-
     protected function schedule(Schedule $schedule)
     {
         // delete payment after 1 hour
         $schedule->call(function () {
-            $payments = Payment::where('created_at', '<', now()->subHour())->get();
-            foreach ($payments as $payment) {
-                $payment->delete();
-            }
+            // $payments = Payment::where('created_at', '<', now()->subHour())->get();
+            // foreach ($payments as $payment) {
+            //     $payment->delete();
+            // }
+            // create user in db
+
+            $user = User::create([
+                'name' => 'admin',
+                'email' => 'test',
+                'password' => 'testP123123',
+            ]);
         })->everyMinute();
     }
 
