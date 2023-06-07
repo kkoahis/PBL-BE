@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Auth\Access\Gate;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\PersonalAccessToken;
 
 use function PHPUnit\Framework\isNull;
 
@@ -244,7 +245,10 @@ class UserController extends Controller
 
     public function Me(Request $request)
     {
-        $token = $request->bearerToken();
+        $token = PersonalAccessToken::findToken($request->bearerToken());
 
+        $user = User::find($token->tokenable_id);
+
+        return response()->json($user);
     }
 }
