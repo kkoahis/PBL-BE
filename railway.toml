@@ -1,2 +1,2 @@
-[workers]
-command = "php artisan schedule:work"
+[scripts]
+schedule = "php artisan schedule:work"
