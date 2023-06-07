@@ -249,11 +249,14 @@ class UserController extends Controller
 
         $user = User::find($token->tokenable_id);
 
-        return response()->json([
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->role,
-            'avatar' => $user->avatar,
-        ]);
+
+        return response()->json(
+            [
+                'success' => true,
+                'message' => 'User found',
+                'data' => $user
+            ],
+            200
+        );
     }
 }
