@@ -21,10 +21,10 @@ return new class extends Migration
 
             $table->integer('room_count');
             $table->double('total_amount');
-            $table->string('status')->default('pending');
+            $table->string('status')->default('unpaid');
             $table->string('description')->nullable();
             $table->boolean('is_payment')->default(false);
-            $table->string('payment_type')->nullable();
+            // $table->string('payment_type')->nullable();
             $table->dateTime('date_in');
             $table->dateTime('date_out');
             $table->dateTime('date_booking');

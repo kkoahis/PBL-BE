@@ -22,7 +22,7 @@ class UserController extends Controller
             $validator = Validator::make(request()->all(), [
                 'name' => 'required|string|min:1|max:255',
                 'email' => 'required|email|unique:users,email',
-                'password' => 'required|string|min:5',
+                'password' => 'required|string|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/|min:8|max:255',
             ]);
 
             if ($validator->fails()) {
@@ -148,7 +148,7 @@ class UserController extends Controller
         try {
             $user = Auth::user();
 
-            if($user->id != $id){
+            if ($user->id != $id) {
                 return response()->json(['error' => 'You are not authorized to perform this action'], 403);
             }
 
@@ -174,10 +174,11 @@ class UserController extends Controller
         }
     }
 
-    public function editProfile(Request $request, $id){
+    public function editProfile(Request $request, $id)
+    {
         $input = $request->all();
         $user = Auth::user();
-        if($user->id != $id){
+        if ($user->id != $id) {
             return response()->json(['error' => 'You are not authorized to perform this action'], 403);
         }
 
@@ -186,7 +187,7 @@ class UserController extends Controller
             'phone_number' =>  'regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
             'gender' => 'in:0,1',
             'date_of_birth' => 'date_format:Y-m-d',
-            'avatar' ,
+            'avatar',
             'address' => 'string|min:1|max:255',
             'password' => 'required|regex:/^(?=.*[A-Z])(?=.*\d).+$/',
         ]);
@@ -202,23 +203,23 @@ class UserController extends Controller
         }
 
         // if user not change avatar, keep old avatar
-        if($request->hasFile('avatar')){
+        if ($request->hasFile('avatar')) {
             $avatar = $request->file('avatar');
-            $avatarName = time().'.'.$avatar->getClientOriginalExtension();
+            $avatarName = time() . '.' . $avatar->getClientOriginalExtension();
             $avatar->move(public_path('images'), $avatarName);
             $userModel->avatar = $avatarName;
         }
-        
+
 
         $userModel->name = $input['name'];
         $userModel->phone_number = $input['phone_number'];
         $userModel->gender = $input['gender'];
         $userModel->date_of_birth = $input['date_of_birth'];
         // date of birth not in the past
-        if($userModel->date_of_birth > date('Y-m-d')){
+        if ($userModel->date_of_birth > date('Y-m-d')) {
             return response()->json(['error' => 'Date of birth must be in the past'], 400);
         }
-        if(isNull($userModel->avatar)){
+        if (isNull($userModel->avatar)) {
             $userModel->avatar = 'https://static.vecteezy.com/system/resources/previews/009/734/564/original/default-avatar-profile-icon-of-social-media-user-vector.jpg';
         }
         $userModel->address = $input['address'];
@@ -226,19 +227,24 @@ class UserController extends Controller
 
         $userModel->save();
 
-        if($userModel->save()){
+        if ($userModel->save()) {
             return response()->json(([
                 'success' => true,
                 'message' => 'User updated successfully',
                 'data' => $userModel
             ]), 200);
-        }
-        else{
+        } else {
             return response()->json(([
                 'success' => false,
                 'message' => 'User updated failed',
                 'data' => $userModel
             ]), 400);
         }
+    }
+
+    public function Me(Request $request)
+    {
+        $token = $request->bearerToken();
+
     }
 }

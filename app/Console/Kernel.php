@@ -14,15 +14,13 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // delete payment if payment_status = 0 every 1 minute using call method
+        // using cron job to delete user that has not been verified in 24 hours
         $schedule->call(function () {
-            // create new user every 1 minute using create method
-            User::create([
-                'name' => 'User ' . rand(1, 100),
-                'email' => 'user' . rand(1, 100) . '@gmail.com',
-                'password' => bcrypt('Password1'),
-            ]);
-        })->everyMinute();
+            $users = User::where('email_verified_at', null)->get();
+            foreach ($users as $user) {
+                $user->delete();
+            }
+        })->daily();
     }
 
     /**

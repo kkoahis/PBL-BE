@@ -19,7 +19,7 @@ return new class extends Migration
             
             $table->dateTime('date_in');
             $table->dateTime('date_out');
-            $table->string('status')->default('pending');
+            $table->string('status')->default('unpaid');
             $table->timestamps();
             $table->softDeletes();
         });

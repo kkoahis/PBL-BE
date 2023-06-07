@@ -487,12 +487,13 @@ class CategoryController extends BaseController
             $category = Category::where('hotel_id', $hotel_id)->get()->pluck('id');
             $allRoom = Room::whereIn('category_id', $category)->get()->pluck('id');
 
-            // get booking detail with date_in and date_out and status not pending
+            // get booking detail with date_in and date_out
             $bookingDetail = BookingDetail::where('date_in', '<=', $date_in)
                 ->where('date_out', '>=', $date_out)
+                ->where('status', '!=', 'unpaid')
                 ->whereIn('room_id', $allRoom)
                 ->get();
-            // get not get booking detail that soft deleted
+            // get 'not get booking detail that soft deleted'
 
 
             if ($bookingDetail->count() == 0) {

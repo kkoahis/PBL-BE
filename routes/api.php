@@ -31,6 +31,7 @@ Route::controller(NewPasswordController::class)->group(function () {
 });
 
 Route::controller(UserController::class)->group(function () {
+    Route::post('/me', [UserController::class, 'Me']);
     Route::post('/register', 'register');
     Route::post('/login', 'login');
     Route::post('/logout', 'logout');

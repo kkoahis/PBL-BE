@@ -19,7 +19,7 @@ return new class extends Migration
             $table->longText('qr_code')->nullable();
             $table->longText('qr_code_url')->nullable();
             // isPayment
-            $table->boolean('payment_status')->boolean();
+            $table->boolean('payment_status')->default(false);
             $table->double('total_amount');
             // discound
             $table->double('discount')->nullable();

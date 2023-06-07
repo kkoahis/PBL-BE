@@ -48,19 +48,13 @@ class BookingController extends BaseController
         $input = $request->all();
 
         $validator = Validator::make($input, [
-            // 'user_id' => 'required|exists:users,id,deleted_at,NULL',
             'hotel_id' => 'required|exists:hotel,id,deleted_at,NULL',
             'room_count' => 'required | numeric',
-            // 'status' => 'pending',
             'description',
-            'is_payment' => 'required | numeric | between:0,1',
-            'payment_type' => 'required',
             'date_in' => 'required | date',
             'date_out' => 'required | date',
             'room_id' => 'required | exists:room,id,deleted_at,NULL',
         ]);
-
-        // dd($validator);
 
         if ($validator->fails()) {
             return $this->sendError('Validation Error.', $validator->errors());
@@ -81,15 +75,11 @@ class BookingController extends BaseController
         }
 
         $booking->total_amount = 0;
-        // $booking->status = 0;
         $booking->description = $input['description'];
-        $booking->is_payment = $input['is_payment'];
-        $booking->payment_type = $input['payment_type'];
         $booking->date_in = $input['date_in'];
         $booking->date_out = $input['date_out'];
         // date_booking is auto now + 7 hours
         $booking->date_booking = date('Y-m-d H:i:s', strtotime('+7 hours'));
-        // dd($booking->created_at);
 
         $checkIn = $input['date_in'];
         $checkOut = $input['date_out'];
@@ -106,8 +96,9 @@ class BookingController extends BaseController
 
         DB::beginTransaction();
 
+
         try {
-            // kiểm tra xem ngày đặt phòng có trùng với ngày đặt phòng của người khác hay không
+            // kiểm tra xem ngày đặt phòng có trùng với ngày đặt phòng của người khác hay không và nếu trong booking detail có status = unpaid thì vẫn cho đặt phòng, status = pendding thì không cho đặt phòng
             $conflictingBooking = BookingDetail::where('room_id', $input['room_id'])
                 ->where(function ($query) use ($checkIn, $checkOut) {
                     $query->whereBetween('date_in', [$checkIn, $checkOut])
@@ -116,7 +107,7 @@ class BookingController extends BaseController
                             $query->where('date_in', '<=', $checkIn)
                                 ->where('date_out', '>=', $checkOut);
                         });
-                })
+                })->where('status', '!=', 'unpaid')
                 ->exists();
 
             if ($conflictingBooking) {
@@ -168,30 +159,14 @@ class BookingController extends BaseController
             $booking->total_amount = $totalAmount;
             $booking->save();
 
-            $currentDate = Carbon::now()->format('Y-m-d');
-            $bookingDetails = BookingDetail::whereDate('date_in', $currentDate)->get();
-
-            foreach ($bookingDetails as $bookingDetail) {
-                $roomId = $bookingDetail->room_id;
-                $room = Room::find($roomId);
-
-                // Cập nhật trạng thái phòng tại đây
-                $room->status = 1;
-                $room->save();
-            }
-
-
-            // if payment_type is cash, dont create payment
-            if ($input['payment_type'] != 'cash') {
-                $booking->payment()->create([
-                    'booking_id' => $booking->id,
-                    'payment_type' => $input['payment_type'],
-                    'is_payment' => $input['is_payment'],
-                    'total_amount' => $booking->total_amount,
-                    'qr_code' => 'https://buy.stripe.com/test_dR6g1ucrc6zWf7ybIL',
-                    'payment_status' => 0,
-                ]);
-            }
+            $booking->payment()->create([
+                'booking_id' => $booking->id,
+                // 'payment_type' => $input['payment_type'],
+                // 'is_payment' => $input['is_payment'],
+                'total_amount' => $booking->total_amount,
+                'qr_code' => 'https://buy.stripe.com/test_dR6g1ucrc6zWf7ybIL',
+                // 'payment_status' => 0,
+            ]);
         }
 
         return response()->json([
@@ -202,7 +177,6 @@ class BookingController extends BaseController
                 'booking_detail' => $booking->bookingDetail()->get(),
                 'payment' => $booking->payment()->get(),
                 'category' => $booking->hotel()->first()->category()->first(),
-                // 'room' => $booking->bookingDetail()->first()->room()->first(),
             ]
         ], 200);
     }
@@ -211,13 +185,13 @@ class BookingController extends BaseController
     {
         $user = Auth::user();
         $created_by = Hotel::find($id);
-        if($created_by == null) {
+        if ($created_by == null) {
             return $this->sendError('Hotel not found.');
         }
-        if($user->role != 'hotel') {
+        if ($user->role != 'hotel') {
             return $this->sendError('You are not authorized to do this action.');
         }
-        if($user->id != $created_by->created_by) {
+        if ($user->id != $created_by->created_by) {
             return $this->sendError('You are not authorized to do this action.');
         }
 
@@ -264,13 +238,13 @@ class BookingController extends BaseController
     {
         $user = Auth::user();
         $created_by = Hotel::find($id);
-        if($created_by == null) {
+        if ($created_by == null) {
             return $this->sendError('Hotel not found.');
         }
-        if($user->role != 'hotel') {
+        if ($user->role != 'hotel') {
             return $this->sendError('You are not authorized to do this action.');
         }
-        if($user->id != $created_by->created_by) {
+        if ($user->id != $created_by->created_by) {
             return $this->sendError('You are not authorized to do this action.');
         }
 
@@ -303,13 +277,13 @@ class BookingController extends BaseController
     {
         $user = Auth::user();
         $created_by = Hotel::find($id);
-        if($created_by == null) {
+        if ($created_by == null) {
             return $this->sendError('Hotel not found.');
         }
-        if($user->role != 'hotel') {
+        if ($user->role != 'hotel') {
             return $this->sendError('You are not authorized to do this action.');
         }
-        if($user->id != $created_by->created_by) {
+        if ($user->id != $created_by->created_by) {
             return $this->sendError('You are not authorized to do this action.');
         }
 
@@ -362,10 +336,10 @@ class BookingController extends BaseController
     public function getBookingByUserid($id)
     {
         $user = Auth::user();
-        if($user->role != 'user') {
+        if ($user->role != 'user') {
             return $this->sendError('You are not authorized to do this action.');
         }
-        if($user->id != $id) {
+        if ($user->id != $id) {
             return $this->sendError('You are not get booking of another user.');
         }
 
@@ -400,7 +374,7 @@ class BookingController extends BaseController
     public function getBookingByUserIdPast($id)
     {
         $user = Auth::user();
-        if($user->role != 'user') {
+        if ($user->role != 'user') {
             return $this->sendError('You are not authorized to do this action.');
         }
         if ($user->id != $id) {
@@ -438,13 +412,13 @@ class BookingController extends BaseController
     {
         $user = Auth::user();
         $created_by = Hotel::find($id);
-        if($created_by == null) {
+        if ($created_by == null) {
             return $this->sendError('Hotel not found.');
         }
-        if($user->role != 'hotel') {
+        if ($user->role != 'hotel') {
             return $this->sendError('You are not authorized to do this action.');
         }
-        if($user->id != $created_by->created_by) {
+        if ($user->id != $created_by->created_by) {
             return $this->sendError('You are not authorized to do this action.');
         }
 
