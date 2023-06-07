@@ -16,7 +16,6 @@ class Kernel extends ConsoleKernel
     {
         // delete payment if payment_status = 0 every 1 minute using call method
         $schedule->call(function () {
-            // Payment::where('payment_status', 0)->delete();
             // create new user every 1 minute using create method
             User::create([
                 'name' => 'User ' . rand(1, 100),
