@@ -1,2 +1,0 @@
-[scripts]
-schedule = "php artisan schedule:work"
