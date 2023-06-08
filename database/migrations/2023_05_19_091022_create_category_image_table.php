@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('category_image', function (Blueprint $table) {
             $table->id();
             $table->foreignId('category_id')->constrained('category')->onDelete('cascade')->onUpdate('cascade');
-            $table->string('image_url')->nullable();
+            $table->longText('image_url')->nullable();
             $table->string('image_description')->nullable();
             $table->timestamps();
             $table->softDeletes();

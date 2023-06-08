@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('phone_number')->after('name')->nullable();
             $table->string('address')->after('phone_number')->nullable();
             $table->date('date_of_birth')->after('address')->nullable();
-            $table->string('avatar')->after('date_of_birth')->nullable();
+            $table->longText('avatar')->after('date_of_birth')->nullable();
 
             $table->softDeletes();
         });
