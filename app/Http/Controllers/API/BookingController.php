@@ -178,6 +178,7 @@ class BookingController extends BaseController
                 'payment' => $booking->payment()->get(),
                 // get corect category of booking 
                 'category' => $booking->bookingDetail()->first()->room->category,
+                'category_image' => $booking->bookingDetail()->first()->room->category->categoryImage()->get(),
             ]
         ], 200);
     }
