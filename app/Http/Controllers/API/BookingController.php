@@ -11,6 +11,9 @@ use App\Models\Booking;
 use App\Models\BookingDetail;
 use App\Models\Hotel;
 use App\Models\Room;
+use App\Models\User;
+use App\Notifications\userReceiveBooking;
+use App\Notifications\userRejectedBooking;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Auth;
@@ -287,7 +290,7 @@ class BookingController extends BaseController
         // paginate and get status = pending
         $booking = Booking::where('hotel_id', $id)->where('status', 'pending')->get();
 
-        if($booking == null){
+        if ($booking == null) {
             return $this->sendError('Booking not found.');
         }
 
@@ -491,6 +494,13 @@ class BookingController extends BaseController
             }
         }
 
+
+        $userBooking = User::find($booking->user_id)->id;
+        // send notification to user
+        $user = User::find($userBooking);
+        $user->notify(new userReceiveBooking($booking));
+
+
         return response()->json([
             'success' => true,
             'message' => 'Booking accepted successfully.',
@@ -535,6 +545,11 @@ class BookingController extends BaseController
                 $value->forceDelete();
             }
         }
+
+        $userBooking = User::find($booking->user_id)->id;
+        // send notification to user
+        $user = User::find($userBooking);
+        $user->notify(new userRejectedBooking($booking));
 
         return $this->sendResponse(new BookingResource($booking), 'Booking rejected successfully.');
     }
