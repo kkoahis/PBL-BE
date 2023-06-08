@@ -176,7 +176,8 @@ class BookingController extends BaseController
                 'booking' => $booking,
                 'booking_detail' => $booking->bookingDetail()->get(),
                 'payment' => $booking->payment()->get(),
-                'category' => $booking->hotel()->first()->category()->first(),
+                // get corect category of booking 
+                'category' => $booking->bookingDetail()->first()->room->category,
             ]
         ], 200);
     }
