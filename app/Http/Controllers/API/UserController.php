@@ -35,6 +35,7 @@ class UserController extends Controller
             $user->name = $request->name;
             $user->email = $request->email;
             $user->password = Hash::make($request->password);
+            $user->avatar = "https://st3.depositphotos.com/19428878/36416/v/450/depositphotos_364169666-stock-illustration-default-avatar-profile-icon-vector.jpg";
 
             $user->save();
 
@@ -221,7 +222,7 @@ class UserController extends Controller
             return response()->json(['error' => 'Date of birth must be in the past'], 400);
         }
         if (isNull($userModel->avatar)) {
-            $userModel->avatar = 'https://static.vecteezy.com/system/resources/previews/009/734/564/original/default-avatar-profile-icon-of-social-media-user-vector.jpg';
+            $userModel->avatar = 'https://st3.depositphotos.com/19428878/36416/v/450/depositphotos_364169666-stock-illustration-default-avatar-profile-icon-vector.jpg';
         }
         $userModel->address = $input['address'];
         $userModel->password = Hash::make($input['password']);
