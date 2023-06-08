@@ -541,6 +541,8 @@ class CategoryController extends BaseController
 
             foreach ($category as $key => $value) {
                 $categoryDisplay[$key] = Category::find($value);
+                // also get category image per category
+                // $categoryDisplay[$key]['category_image'] = $categoryDisplay[$key]->categoryImage;
                 $roomCountPerDisplay[$key] = $roomAvailable->where('category_id', $value)->count();
                 $roomIDPerDisplay[$key] = $roomAvailable->where('category_id', $value)->pluck('id');
             }
