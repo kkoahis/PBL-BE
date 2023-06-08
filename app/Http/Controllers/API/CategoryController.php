@@ -463,7 +463,6 @@ class CategoryController extends BaseController
         );
     }
 
-
     public function getCategoryByCheckInCheckOutHotel(Request $request)
     {
         $input = $request->all();
@@ -503,7 +502,7 @@ class CategoryController extends BaseController
                 $roomIDPerDisplay = [];
 
                 foreach ($category as $key => $value) {
-                    $categoryDisplay[$key] = Category::find($value);
+                    $categoryDisplay[$key] = Category::find($value)->with('categoryImage')->first();
                     $roomCountPerDisplay[$key] = $roomAvailable->where('category_id', $value)->count();
                     $roomIDPerDisplay[$key] = $roomAvailable->where('category_id', $value)->pluck('id');
                 }
@@ -541,7 +540,7 @@ class CategoryController extends BaseController
             }
 
             foreach ($category as $key => $value) {
-                $categoryDisplay[$key] = Category::find($value);
+                $categoryDisplay[$key] = Category::find($value)->with('categoryImage')->first();
                 $roomCountPerDisplay[$key] = $roomAvailable->where('category_id', $value)->count();
                 $roomIDPerDisplay[$key] = $roomAvailable->where('category_id', $value)->pluck('id');
             }
