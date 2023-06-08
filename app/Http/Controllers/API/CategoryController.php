@@ -502,7 +502,7 @@ class CategoryController extends BaseController
                 $roomIDPerDisplay = [];
 
                 foreach ($category as $key => $value) {
-                    $categoryDisplay[$key] = Category::find($value)->with('categoryImage')->first();
+                    $categoryDisplay[$key] = Category::find($value);
                     $roomCountPerDisplay[$key] = $roomAvailable->where('category_id', $value)->count();
                     $roomIDPerDisplay[$key] = $roomAvailable->where('category_id', $value)->pluck('id');
                 }
@@ -540,7 +540,7 @@ class CategoryController extends BaseController
             }
 
             foreach ($category as $key => $value) {
-                $categoryDisplay[$key] = Category::find($value)->with('categoryImage')->first();
+                $categoryDisplay[$key] = Category::find($value);
                 $roomCountPerDisplay[$key] = $roomAvailable->where('category_id', $value)->count();
                 $roomIDPerDisplay[$key] = $roomAvailable->where('category_id', $value)->pluck('id');
             }
