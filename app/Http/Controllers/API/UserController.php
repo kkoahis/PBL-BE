@@ -189,9 +189,7 @@ class UserController extends Controller
             'phone_number' =>  'regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
             'gender' => 'in:0,1',
             'date_of_birth' => 'date_format:Y-m-d',
-            'avatar',
             'address' => 'string|min:1|max:255',
-            'password' => 'required|regex:/^(?=.*[A-Z])(?=.*\d).+$/',
         ]);
 
         if ($validator->fails()) {
@@ -204,15 +202,6 @@ class UserController extends Controller
             return response()->json(['error' => 'User not found'], 404);
         }
 
-        // if user not change avatar, keep old avatar
-        if ($request->hasFile('avatar')) {
-            $avatar = $request->file('avatar');
-            $avatarName = time() . '.' . $avatar->getClientOriginalExtension();
-            $avatar->move(public_path('images'), $avatarName);
-            $userModel->avatar = $avatarName;
-        }
-
-
         $userModel->name = $input['name'];
         $userModel->phone_number = $input['phone_number'];
         $userModel->gender = $input['gender'];
@@ -221,11 +210,7 @@ class UserController extends Controller
         if ($userModel->date_of_birth > date('Y-m-d')) {
             return response()->json(['error' => 'Date of birth must be in the past'], 400);
         }
-        if (isNull($userModel->avatar)) {
-            $userModel->avatar = 'https://st3.depositphotos.com/19428878/36416/v/450/depositphotos_364169666-stock-illustration-default-avatar-profile-icon-vector.jpg';
-        }
         $userModel->address = $input['address'];
-        $userModel->password = Hash::make($input['password']);
 
         $userModel->save();
 
