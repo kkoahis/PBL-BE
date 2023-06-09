@@ -260,4 +260,41 @@ class UserController extends Controller
             200
         );
     }
+
+    public function changePassword(Request $request)
+    {
+        $input = $request->all();
+        $token = PersonalAccessToken::findToken($request->bearerToken());
+
+        $user = User::find($token->tokenable_id)->id;
+
+        $validator = Validator::make($input, [
+            'old_password' => 'required',
+            'new_password' => 'required|string|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/|min:8|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->messages(), 400);
+        }
+
+        $user = User::find($user);
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        if (!Hash::check($input['old_password'], $user->password)) {
+            return response()->json(['error' => 'Old password is incorrect'], 400);
+        }
+
+        if (Hash::check($input['new_password'], $user->password)) {
+            return response()->json(['error' => 'New password must be different from old password'], 400);
+        }
+
+        $user->password = Hash::make($input['new_password']);
+
+        $user->save();
+
+        return response()->json(['success' => 'Password changed successfully!']);
+    }
 }

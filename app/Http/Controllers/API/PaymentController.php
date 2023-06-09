@@ -182,24 +182,4 @@ class PaymentController extends BaseController
         return $this->sendError('Payment can not be deleted.');
     }
 
-    // public function deleteByHotelId($hotel_id){
-    //     $hotel = Hotel::find($hotel_id);
-    //     if (is_null($hotel)) {
-    //         return $this->sendError('Hotel not found.');
-    //     }
-
-    //     $payment = Payment::whereHas('booking', function ($query) use ($hotel_id) {
-    //         $query->where('hotel_id', $hotel_id);
-    //     })->get();
-
-    //     if (is_null($payment)) {
-    //         return $this->sendError('Payment not found.');
-    //     }
-
-    //     if ($payment->delete()) {
-    //         return $this->sendResponse([], 'Payment deleted successfully.');
-    //     }
-
-    //     return $this->sendError('Payment can not be deleted.');
-    // }
 }
