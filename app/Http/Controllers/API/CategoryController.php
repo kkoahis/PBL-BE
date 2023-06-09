@@ -556,6 +556,8 @@ class CategoryController extends BaseController
                     'roomIDPerDisplay' => $roomIDPerDisplay,
                 ];
 
+                DB::commit();
+
                 return response()->json(([
                         'success' => true,
                         'message' => 'Category retrieved successfully.',
@@ -611,6 +613,8 @@ class CategoryController extends BaseController
                     'roomIDPerDisplay' => $roomIDPerDisplay,
                 ];
 
+                DB::commit();
+
                 return response()->json(([
                         'success' => true,
                         'message' => 'Category retrieved successfully.',
@@ -619,6 +623,7 @@ class CategoryController extends BaseController
                 );
             }
         } catch (\Exception $e) {
+            DB::rollBack();
             return $this->sendError('Category not found.');
         }
     }
