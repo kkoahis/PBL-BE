@@ -555,7 +555,7 @@ class CategoryController extends BaseController
                 'data' => [
                     'category' => $categoryDisplay,
                     'room available' => $roomCountPerDisplay,
-                    'room id' => $roomIDPerDisplay,
+                    'roomIDPerDisplay' => $roomIDPerDisplay,
                 ]
             ]);
         } catch (\Exception $e) {
