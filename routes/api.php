@@ -48,6 +48,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('users')->group(functi
 });
 
 Route::prefix('hotels')->group(function () {
+    Route::get('/statistic', [HotelController::class, 'statistic']);
     Route::get('/host', [HotelController::class, 'getHotelByHost']);
     Route::get('/latest', [HotelController::class, 'getHotelLatest']);
     Route::get('/safety-hygiene', [HotelController::class, 'getHotelBySafetyHygiene']);
@@ -69,11 +70,13 @@ Route::prefix('hotels')->group(function () {
 
 // Hotels API 
 Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('hotels')->group(function () {
+    Route::get('/statisticsBooking', [HotelController::class, 'statisticsBooking']);
     Route::post('/', [HotelController::class, 'store']);
     Route::put('/{id}', [HotelController::class, 'update']);
     Route::delete('/{id}', [HotelController::class, 'destroy']);
 
     Route::put('/restore/{id}', [HotelController::class, 'restore']);
+    // statisticsBooking
 });
 
 Route::prefix('hotel-images')->group(function () {

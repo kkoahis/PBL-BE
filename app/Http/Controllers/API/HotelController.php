@@ -705,7 +705,8 @@ class HotelController extends BaseController
         ));
     }
 
-    public function getHotelByHost(Request $request){
+    public function getHotelByHost(Request $request)
+    {
         $token = PersonalAccessToken::findToken($request->bearerToken());
 
         $user = User::find($token->tokenable_id);
@@ -720,6 +721,62 @@ class HotelController extends BaseController
                 'success' => true,
                 'message' => 'Hotel retrieved successfully.',
                 'data' => $hotel,
+            ]
+            ));
+        } else {
+            return $this->sendError('You are not permission.');
+        }
+    }
+
+    public function statistic(Request $request)
+    {
+        $token = PersonalAccessToken::findToken($request->bearerToken());
+
+        $user = User::find($token->tokenable_id);
+
+        $hotel = Hotel::where('created_by', $user->id)->with('hotelImage')->get();
+
+        $totalBooked = 0;
+        $totalRejected = 0;
+        $totalPending = 0;
+        $totalAmount = 0;
+
+        // get total booked of hotel where id hotel = id hotel in booking and status = accepted
+        foreach ($hotel as $key => $value) {
+            $totalBooked += Booking::where('hotel_id', $value->id)->where('status', 'accepted')->count();
+        }
+
+        // get total rejected of hotel where id hotel = id hotel in booking and status = rejected
+        foreach ($hotel as $key => $value) {
+            $totalRejected += Booking::where('hotel_id', $value->id)->where('status', 'rejected')->count();
+        }
+
+        // get total pending of hotel where id hotel = id hotel in booking and status = pending
+        foreach ($hotel as $key => $value) {
+            $totalPending += Booking::where('hotel_id', $value->id)->where('status', 'pending')->count();
+        }
+
+        // get total amount of hotel where id hotel = id hotel in booking and status = accepted or pending or rejected
+        foreach ($hotel as $key => $value) {
+            $totalAmount += Booking::where('hotel_id', $value->id)->where('status', 'accepted')->sum('total_amount');
+            $totalAmount += Booking::where('hotel_id', $value->id)->where('status', 'pending')->sum('total_amount');
+            $totalAmount += Booking::where('hotel_id', $value->id)->where('status', 'rejected')->sum('total_amount');
+        }
+
+        if (is_null($hotel)) {
+            return $this->sendError('Hotel not found.');
+        }
+
+        if ($user->role == 'hotel') {
+            return response()->json(([
+                'success' => true,
+                'message' => 'Hotel retrieved successfully.',
+                'data' => [
+                    'Booked' => $totalBooked,
+                    'Rejected' => $totalRejected,
+                    'Pending' => $totalPending,
+                    'Amount' => $totalAmount,
+                ],
             ]
             ));
         } else {
