@@ -47,7 +47,7 @@ class HotelController extends BaseController
             ->join('users', 'booking.user_id', '=', 'users.id')
             ->select('review.*', 'users.name')
             ->where('booking.hotel_id', '=', $id)
-            ->get();
+            ->paginate(20);
 
         $hotel->review = $reviewOfHotel;
 
