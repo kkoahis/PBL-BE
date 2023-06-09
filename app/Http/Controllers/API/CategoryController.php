@@ -554,7 +554,7 @@ class CategoryController extends BaseController
                 'message' => 'Category retrieved successfully.',
                 'data' => [
                     'category' => $categoryDisplay,
-                    'room available' => $roomCountPerDisplay,
+                    'roomCountPerDisplay' => $roomCountPerDisplay,
                     'roomIDPerDisplay' => $roomIDPerDisplay,
                 ]
             ]);
