@@ -17,6 +17,7 @@ use Monolog\Handler\SendGridHandler;
 use PhpParser\Node\Expr\FuncCall;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\PersonalAccessToken;
 
 use function PHPUnit\Framework\isNull;
 
@@ -702,5 +703,27 @@ class HotelController extends BaseController
             'data' => $hotel,
         ]
         ));
+    }
+
+    public function getHotelByHost(Request $request){
+        $token = PersonalAccessToken::findToken($request->bearerToken());
+
+        $user = User::find($token->tokenable_id);
+
+        $hotel = Hotel::where('created_by', $user->id)->with('hotelImage')->paginate(20);
+
+        if (is_null($hotel)) {
+            return $this->sendError('Hotel not found.');
+        }
+        if ($user->role == 'hotel') {
+            return response()->json(([
+                'success' => true,
+                'message' => 'Hotel retrieved successfully.',
+                'data' => $hotel,
+            ]
+            ));
+        } else {
+            return $this->sendError('You are not permission.');
+        }
     }
 }

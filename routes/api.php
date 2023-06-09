@@ -48,6 +48,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('users')->group(functi
 });
 
 Route::prefix('hotels')->group(function () {
+    Route::get('/host', [HotelController::class, 'getHotelByHost']);
     Route::get('/latest', [HotelController::class, 'getHotelLatest']);
     Route::get('/safety-hygiene', [HotelController::class, 'getHotelBySafetyHygiene']);
     Route::get('/amenities', [HotelController::class, 'getHotelByAmenities']);
@@ -200,12 +201,12 @@ Route::prefix('reviews')->group(
         Route::get('/{id}', [ReviewController::class, 'show']);
         Route::get('/hotel/{id}', [ReviewController::class, 'getReviewByHotelId']);
         Route::get('/booking/{id}', [ReviewController::class, 'getReviewByBookingId']);
-        // Route::get('/user/{id}', [ReviewController::class, 'getReviewByUserId']);
     }
 );
 
 // Review API
 Route::middleware(['auth:sanctum', 'verified', 'role:user'])->prefix('reviews')->group(function () {
+    Route::get('/user/{id}', [ReviewController::class, 'getReviewByUser']);
     Route::get('reviews/{id}', [ReviewController::class, 'show']);
     Route::post('/', [ReviewController::class, 'store']);
     Route::put('/{id}', [ReviewController::class, 'update']);
@@ -217,7 +218,6 @@ Route::middleware(['auth:sanctum', 'verified', 'role:user'])->prefix('reviews')-
     Route::put('/restore/{id}', [ReviewController::class, 'restore']);
     Route::put('/hotel/{id}', [ReviewController::class, 'restoreByHotelId']);
 
-    // Route::get('/user/{id}', [ReviewController::class, 'getReviewByUserId']);
     Route::put('/user/{id}', [ReviewController::class, 'restoreByUserId']);
     Route::delete('/user/{id}', [ReviewController::class, 'deleteByUserId']);
 });

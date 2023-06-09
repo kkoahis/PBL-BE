@@ -287,4 +287,23 @@ class ReviewController extends BaseController
             return $this->sendError('Review not found.');
         }
     }
+
+    public function getReviewByUser($id)
+    {
+        $review = Review::where('user_id', $id)->paginate(10);
+
+        $user = Auth::user();
+        if ($user->id == $id) {
+            if (is_null($review)) {
+                return $this->sendError('Review not found.');
+            }
+            if ($review->count() > 0) {
+                return $this->sendResponse(ReviewResource::collection($review), 'Review retrieved successfully.');
+            } else {
+                return $this->sendError('Review not found.');
+            }
+        } else {
+            return $this->sendError('You are not authorized to access this page.');
+        }
+    }
 }
