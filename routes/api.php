@@ -36,16 +36,15 @@ Route::controller(UserController::class)->group(function () {
     Route::post('/register', 'register');
     Route::post('/login', 'login');
     Route::post('/logout', 'logout');
-    // change password
 });
 
 // Route updateRole for admin by email input field
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('users')->group(function () 
 {
+    Route::put('/editProfile/{id}', [UserController::class, 'editProfile']);
     Route::put('/role/{email}', [UserController::class, 'updateRole']);
     Route::get('/allUser', [UserController::class, 'getAllUser']);
     Route::get('/profile/{id}', [UserController::class, 'getProfile']);
-    Route::put('/editProfile/{id}', [UserController::class, 'editProfile']);
 });
 
 Route::prefix('hotels')->group(function () {
@@ -198,7 +197,6 @@ Route::middleware(['auth:sanctum', 'verified', 'role:user'])->prefix('payments')
 
 Route::prefix('reviews')->group(
     function () {
-        Route::get('/', [ReviewController::class, 'index']);
         Route::get('/{id}', [ReviewController::class, 'show']);
         Route::get('/hotel/{id}', [ReviewController::class, 'getReviewByHotelId']);
         Route::get('/booking/{id}', [ReviewController::class, 'getReviewByBookingId']);
@@ -208,17 +206,14 @@ Route::prefix('reviews')->group(
 
 // Review API
 Route::middleware(['auth:sanctum', 'verified', 'role:user'])->prefix('reviews')->group(function () {
-    Route::get('reviews', [ReviewController::class, 'index']);
     Route::get('reviews/{id}', [ReviewController::class, 'show']);
     Route::post('/', [ReviewController::class, 'store']);
     Route::put('/{id}', [ReviewController::class, 'update']);
     Route::delete('/{id}', [ReviewController::class, 'destroy']);
 
-    Route::get('reviews/hotel/{id}', [ReviewController::class, 'getReviewByHotelId']);
     Route::delete('/hotel/{id}', [ReviewController::class, 'deleteByHotelId']);
     Route::put('/hotel/{id}', [ReviewController::class, 'restoreByHotelId']);
 
-    Route::get('reviews/booking/{id}', [ReviewController::class, 'getReviewByBookingId']);
     Route::put('/restore/{id}', [ReviewController::class, 'restore']);
     Route::put('/hotel/{id}', [ReviewController::class, 'restoreByHotelId']);
 

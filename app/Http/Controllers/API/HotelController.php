@@ -42,7 +42,23 @@ class HotelController extends BaseController
             return $this->sendError('Hotel not found.');
         }
 
-        return $this->sendResponse(new HotelResource($hotel), 'Hotel retrieved successfully.');
+        $reviewOfHotel = DB::table('review')
+            ->join('booking', 'review.booking_id', '=', 'booking.id')
+            ->join('users', 'booking.user_id', '=', 'users.id')
+            ->select('review.*', 'users.name')
+            ->where('booking.hotel_id', '=', $id)
+            ->get();
+
+        $hotel->review = $reviewOfHotel;
+
+        // return $this->sendResponse(new HotelResource($hotel), 'Hotel retrieved successfully.');
+        return response()->json(([
+            'success' => true,
+            'message' => 'Hotel retrieved successfully.',
+            'data' => new HotelResource($hotel),
+            'reviews' =>  $reviewOfHotel
+        ]
+        ));
     }
 
     public function store(Request $request)
@@ -51,7 +67,7 @@ class HotelController extends BaseController
         if ($user->role != 'hotel') {
             return $this->sendError('You are not authorized to create hotel.');
         }
-        
+
         $input = $request->all();
         $validator = Validator::make($input, [
             'name' => 'required',
@@ -108,7 +124,7 @@ class HotelController extends BaseController
         $hotel->nation = $input['nation'];
         $hotel->price = $input['price'];
 
-        
+
         $hotel->created_by = $user->id;
 
         // dd($hotel->created_by);
@@ -579,7 +595,8 @@ class HotelController extends BaseController
         ));
     }
 
-    public function getHotelNearby(){
+    public function getHotelNearby()
+    {
         // get 7 hotel nearby City = Da Nang
         $hotel = Hotel::orderBy('id', 'asc')->where('city', 'like', '%' . 'Da Nang' . '%')->with('hotelImage')->limit(7)->get();
 
@@ -595,14 +612,15 @@ class HotelController extends BaseController
         ));
     }
 
-    public function getHotelTopBooked(){
+    public function getHotelTopBooked()
+    {
         // get 7 hotel top booked
         $hotelBooked = Booking::select('hotel_id', DB::raw('count(*) as total'))->groupBy('hotel_id')->orderBy('total', 'desc')->limit(6)->get();
 
         $hotel = array();
         foreach ($hotelBooked as $key => $value) {
             $hotel[$key] = Hotel::where('id', $value->hotel_id)->with('hotelImage')->first();
-        } 
+        }
 
         if (is_null($hotel)) {
             return $this->sendError('Hotel not found.');
@@ -616,7 +634,8 @@ class HotelController extends BaseController
         ));
     }
 
-    public function getCityOfHotel(){
+    public function getCityOfHotel()
+    {
         // get 5 city of hotel don't group by
         $hotel = Hotel::select('city')->distinct()->limit(5)->get();
 
@@ -651,7 +670,7 @@ class HotelController extends BaseController
         }
 
         if ($input['min_price'] == 0 && $input['max_price'] == 0) {
-            
+
             return $this->sendError('Min price and max price must be greater than 0.');
         }
 
@@ -668,7 +687,8 @@ class HotelController extends BaseController
         ));
     }
 
-    public function getHotelLatest(){
+    public function getHotelLatest()
+    {
         // get 7 hotel latest
         $hotel = Hotel::orderBy('id', 'desc')->with('hotelImage')->limit(7)->get();
 

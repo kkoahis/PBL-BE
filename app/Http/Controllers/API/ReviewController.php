@@ -9,6 +9,9 @@ use App\Models\Review;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Booking;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class ReviewController extends BaseController
 {
@@ -35,26 +38,38 @@ class ReviewController extends BaseController
     {
         $input = $request->all();
         $validator = Validator::make($input, [
-            'user_id' => 'required',
-            'booking_id' => 'required',
+            // 'user_id' => 'required|exists:users,id,deleted_at,NULL',
+            'booking_id' => 'required|exists:booking,id,deleted_at,NULL',
             'title' => 'required',
-            'is_approved',
-            'content' => 'required',
-            // rating is from 1 to 5
-            'rating' => 'required'
+            'content' => 'required ',
+            'rating' => 'required | numeric | min:1 | max:5'
         ]);
 
         if ($validator->fails()) {
             return $this->sendError('Validation Error.', $validator->errors());
         }
 
-        // if user_id in booking table == user_id in reveiw table than create review
-        $user_id = Booking::find($input['booking_id'])->user_id;
-        if ($user_id != $input['user_id']) {
-            return $this->sendError('User not found.');
+        $token = PersonalAccessToken::findToken($request->bearerToken());
+
+        $user = User::find($token->tokenable_id);
+        $user_id = $user->id;
+
+        if (Booking::find($input['booking_id'])->status != 'accepted') {
+            return $this->sendError('Booking not completed.');
+        }
+        if (Review::where('booking_id', $input['booking_id'])->exists()) {
+            return $this->sendError('Review already exists.');
         }
 
-        $review = Review::create($input);
+
+        $review = new Review();
+        $review->user_id = $user_id;
+        $review->booking_id = $input['booking_id'];
+        $review->title = $input['title'];
+        $review->content = $input['content'];
+        $review->rating = $input['rating'];
+
+        $review->save();
 
         return $this->sendResponse(new ReviewResource($review), 'Review created successfully.');
     }
