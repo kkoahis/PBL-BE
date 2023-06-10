@@ -548,9 +548,9 @@ class BookingController extends BaseController
             $bookingDetail = $booking->bookingDetail()->get();
             foreach ($bookingDetail as $key => $value) {
                 // change status to rejected
-                $value->status = 'rejected';
-                $value->save();
-                $value->delete();
+                // $value->status = 'rejected';
+                // $value->save();
+                // $value->delete();
             }
         }
 
@@ -624,6 +624,49 @@ class BookingController extends BaseController
         }
 
         $booking = Booking::whereIn('hotel_id', $allHotel)->where('status', 'accepted')->paginate(20);
+
+        if (is_null($booking)) {
+            return $this->sendError('Booking not found.');
+        }
+
+        foreach ($booking as $key => $value) {
+            $bookingItem[] = [
+                [
+                    'booking' => $value,
+                    'payment' => $value->payment()->get(),
+                    'category' => $value->hotel()->first()->category()->first(),
+                    'category_image' => $value->hotel()->first()->category()->first()->categoryImage()->first(),
+                ]
+            ];
+        }
+
+        if (count($booking) == 0) {
+            return $this->sendError('Booking not found.');
+        } else {
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking retrieved successfully.',
+                'data' => $bookingItem
+            ], 200);
+        }
+    }
+
+    public function getBookingRejectedByHost($idHost){
+        $user = Auth::user();
+        if ($user->role != 'hotel') {
+            return $this->sendError('You are not authorized to do this action.');
+        }
+        if ($user->id != $idHost) {
+            return $this->sendError('You are not authorized to do this action.');
+        }
+
+        $allHotel = Hotel::where('created_by', $idHost)->get();
+
+        foreach ($allHotel as $key => $value) {
+            $allHotel[$key] = $value->id;
+        }
+
+        $booking = Booking::whereIn('hotel_id', $allHotel)->where('status', 'rejected')->paginate(20);
 
         if (is_null($booking)) {
             return $this->sendError('Booking not found.');

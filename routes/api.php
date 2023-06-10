@@ -158,6 +158,8 @@ Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('bookings'
 
     Route::get('/host/{id}', [BookingController::class, 'getBookingByHost']);
     Route::get('/host/past/{id}', [BookingController::class, 'getpassBookingByHost']);
+    Route::get('/host/reject/{id}', [BookingController::class, 'getBookingRejectedByHost']);
+
     // acceptBooking
     Route::put('/accept/{id}', [BookingController::class, 'acceptBooking']);
     // cancelBooking
