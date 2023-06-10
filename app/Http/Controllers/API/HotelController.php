@@ -783,8 +783,4 @@ class HotelController extends BaseController
             return $this->sendError('You are not permission.');
         }
     }
-
-    public function getUser(){
-        
-    }
 }
