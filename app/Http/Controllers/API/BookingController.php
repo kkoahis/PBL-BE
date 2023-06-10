@@ -557,30 +557,20 @@ class BookingController extends BaseController
         return $this->sendResponse(new BookingResource($booking), 'Booking rejected successfully.');
     }
 
-    public function getBookingByHost(){
+    public function getBookingByHost()
+    {
         $user = Auth::user();
         if ($user->role != 'hotel') {
             return $this->sendError('You are not authorized to do this action.');
         }
-        $hotel = Hotel::where('created_by', $user->id)->first();
-        if ($hotel == null) {
-            return $this->sendError('Hotel not found.');
-        }
-        if ($user->id != $hotel->created_by) {
-            return $this->sendError('You are not authorized to do this action.');
-        }
 
-        $booking = Booking::where('hotel_id', $hotel->id)->where('status', 'pending')->get();
-        
-        dd($user, $user->id, $hotel, $hotel, $booking);
-
+        $allHotel = Hotel::where('created_by', $user->id)->get();
+        foreach ($allHotel as $key => $value) {
+            $allHotel[$key] = $value->id;
+        }
+        $booking = Booking::whereIn('hotel_id', $allHotel)->where('status', 'pending')->paginate(20);
 
         if (is_null($booking)) {
-            dd('null');
-            return $this->sendError('Booking not found.');
-        }
-        if (count($booking) == 0) {
-            dd('count');
             return $this->sendError('Booking not found.');
         }
 
