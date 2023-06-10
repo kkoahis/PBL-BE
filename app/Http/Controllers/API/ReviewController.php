@@ -40,7 +40,7 @@ class ReviewController extends BaseController
         $validator = Validator::make($input, [
             // 'user_id' => 'required|exists:users,id,deleted_at,NULL',
             'booking_id' => 'required|exists:booking,id,deleted_at,NULL',
-            'title' => 'required',
+            'title' ,
             'content' => 'required ',
             'rating' => 'required | numeric | min:1 | max:5'
         ]);
