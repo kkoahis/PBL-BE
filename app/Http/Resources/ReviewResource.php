@@ -29,7 +29,7 @@ class ReviewResource extends JsonResource
             'hotel_id' => $this->booking->hotel_id,
 
             'hotel' => $this->booking->hotel->name,
-            'hotel address' => $this->booking->hotel->address,
+            'hotel_address' => $this->booking->hotel->address,
         ];
     }
 }
