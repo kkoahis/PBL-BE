@@ -571,6 +571,10 @@ class BookingController extends BaseController
         }
 
         $booking = Booking::where('hotel_id', $hotel->id)->where('status', 'pending')->get();
+        
+        dd($user, $user->id, $hotel, $hotel, $booking);
+
+
         if (is_null($booking)) {
             dd('null');
             return $this->sendError('Booking not found.');
