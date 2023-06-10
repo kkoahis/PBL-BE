@@ -575,6 +575,10 @@ class BookingController extends BaseController
             dd('null');
             return $this->sendError('Booking not found.');
         }
+        if (count($booking) == 0) {
+            dd('count');
+            return $this->sendError('Booking not found.');
+        }
 
         foreach ($booking as $key => $value) {
             $bookingItem[] = [

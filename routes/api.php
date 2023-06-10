@@ -166,6 +166,7 @@ Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('bookings'
 
 
 Route::middleware(['auth:sanctum', 'verified', 'role:user'])->prefix('bookings')->group(function () {
+    Route::get('/host', [BookingController::class, 'getBookingByHost']);
     Route::post('/', [BookingController::class, 'store']);
     Route::get('/user/{id}', [BookingController::class, 'getBookingByUserId']);
     Route::get('/user/past/{id}', [BookingController::class, 'getBookingByUserIdPast']);
