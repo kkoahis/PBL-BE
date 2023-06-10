@@ -365,6 +365,7 @@ class BookingController extends BaseController
                     'booking' => $value,
                     'payment' => $value->payment()->get(),
                     'category' => $value->hotel()->first()->category()->first(),
+                    'category_image' => $value->hotel()->first()->category()->first()->categoryImage()->first(),
                 ]
             ];
         }
@@ -402,6 +403,7 @@ class BookingController extends BaseController
                     'booking' => $value,
                     'payment' => $value->payment()->get(),
                     'category' => $value->hotel()->first()->category()->first(),
+                    'category_image' => $value->hotel()->first()->category()->first()->categoryImage()->first(),
                 ]
             ];
         }
@@ -580,6 +582,7 @@ class BookingController extends BaseController
                     'booking' => $value,
                     'payment' => $value->payment()->get(),
                     'category' => $value->hotel()->first()->category()->first(),
+                    'category_image' => $value->hotel()->first()->category()->first()->categoryImage()->first(),
                 ]
             ];
         }
@@ -618,6 +621,7 @@ class BookingController extends BaseController
                     'booking' => $value,
                     'payment' => $value->payment()->get(),
                     'category' => $value->hotel()->first()->category()->first(),
+                    'category_image' => $value->hotel()->first()->category()->first()->categoryImage()->first(),
                 ]
             ];
         }
