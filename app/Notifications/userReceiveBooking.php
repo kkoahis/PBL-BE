@@ -39,7 +39,7 @@ class userReceiveBooking extends Notification
         return (new MailMessage)
                     ->greeting('Hello!')
                     ->line('Your order booking has been accepted, please check your order here')
-                    ->action('Go to your reservation', url('/'))
+                    ->action('Go to your reservation', url('https://staycation-kqk.vercel.app/user/reservations'))
                     ->line('Thank you for using our application!');
     }
 

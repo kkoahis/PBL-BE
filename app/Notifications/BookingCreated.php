@@ -40,7 +40,7 @@ class BookingCreated extends Notification
         return (new MailMessage)
                     ->greeting('Hello!')
                     ->line('You have a new booking, please check it out.')
-                    ->action('Go to your reservation', url('/'))
+                    ->action('Go to your reservation', url('https://staycation-kqk.vercel.app/host/reservations'))
                     ->line('Thank you for using our application!');
     }
 
