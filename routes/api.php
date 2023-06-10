@@ -156,7 +156,7 @@ Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('bookings'
     // Route::put('/{id}', [BookingController::class, 'update']);
     Route::delete('/{id}', [BookingController::class, 'destroy']);
 
-    Route::get('/hotel/{id}', [BookingController::class, 'getBookingByHotelId']);
+    Route::get('/host', [BookingController::class, 'getBookingByHost']);
     Route::get('/hotel/past/{id}', [BookingController::class, 'getBookingByHotelIdPast']);
     // acceptBooking
     Route::put('/accept/{id}', [BookingController::class, 'acceptBooking']);

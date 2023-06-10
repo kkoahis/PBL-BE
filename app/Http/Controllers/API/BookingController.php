@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Booking;
 use App\Models\BookingDetail;
 use App\Models\Hotel;
+use App\Models\Reply;
 use App\Models\Room;
 use App\Models\User;
 use App\Notifications\userReceiveBooking;
@@ -554,5 +555,40 @@ class BookingController extends BaseController
         $user->notify(new userRejectedBooking($booking));
 
         return $this->sendResponse(new BookingResource($booking), 'Booking rejected successfully.');
+    }
+
+    public function getBookingByHost(){
+        $user = Auth::user();
+        if ($user->role != 'hotel') {
+            return $this->sendError('You are not authorized to do this action.');
+        }
+        $hotel = Hotel::where('created_by', $user->id)->first();
+        if ($hotel == null) {
+            return $this->sendError('Hotel not found.');
+        }
+        $booking = Booking::where('hotel_id', $hotel->id)->where('status', 'accepted')->paginate(10);
+        if (is_null($booking)) {
+            return $this->sendError('Booking not found.');
+        }
+
+        foreach ($booking as $key => $value) {
+            $bookingItem[] = [
+                [
+                    'booking' => $value,
+                    'payment' => $value->payment()->get(),
+                    'category' => $value->hotel()->first()->category()->first(),
+                ]
+            ];
+        }
+
+        if (count($booking) == 0) {
+            return $this->sendError('Booking not found.');
+        } else {
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking retrieved successfully.',
+                'data' => $bookingItem
+            ], 200);
+        }
     }
 }
