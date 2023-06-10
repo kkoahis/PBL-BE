@@ -242,7 +242,7 @@ Route::middleware(['auth:sanctum', 'verified', 'role:hotel,admin'])->prefix('rep
     Route::get('replies/{id}', [ReplyController::class, 'show']);
     Route::post('/', [ReplyController::class, 'store']);
     Route::put('/{id}', [ReplyController::class, 'update']);
-    Route::delete('/{id}', [ReplyController::class, 'destroy']);
+    // Route::delete('/{id}', [ReplyController::class, 'destroy']);
 
     Route::put('/restore/{id}', [ReplyController::class, 'restore']);
     Route::get('replies/review/{id}', [ReplyController::class, 'getByReviewId']);
