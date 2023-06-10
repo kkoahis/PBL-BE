@@ -547,7 +547,10 @@ class BookingController extends BaseController
             // delete booking detail
             $bookingDetail = $booking->bookingDetail()->get();
             foreach ($bookingDetail as $key => $value) {
-                $value->forceDelete();
+                // change status to rejected
+                $value->status = 'rejected';
+                $value->save();
+                $value->delete();
             }
         }
 
