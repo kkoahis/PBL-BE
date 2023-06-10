@@ -353,7 +353,7 @@ class BookingController extends BaseController
         }
 
 
-        $booking = Booking::where('user_id', $id)->where('status', 'accepted')->paginate(10);
+        $booking = Booking::where('user_id', $id)->where('status', 'pending')->paginate(10);
 
         if (is_null($booking)) {
             return $this->sendError('Booking not found.');
@@ -391,7 +391,8 @@ class BookingController extends BaseController
             return $this->sendError('You can not get booking of another user.');
         }
 
-        $booking = Booking::where('user_id', $id)->where('date_out', '<', Carbon::now())->where('status', 'accepted')->paginate(10);
+        // where accepted or rejected
+        $booking = Booking::where('user_id', $id)->where('date_out', '<', Carbon::now())->where('status', '!=', 'pending')->paginate(10);
 
         if (is_null($booking)) {
             return $this->sendError('Booking not found.');

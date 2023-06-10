@@ -48,6 +48,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('users')->group(functi
 });
 
 Route::prefix('hotels')->group(function () {
+    Route::get('/cheapest', [HotelController::class, 'getHotelCheapest']);
     Route::get('/statistic', [HotelController::class, 'statistic']);
     Route::get('/host', [HotelController::class, 'getHotelByHost']);
     Route::get('/latest', [HotelController::class, 'getHotelLatest']);

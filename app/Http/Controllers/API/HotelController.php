@@ -783,4 +783,19 @@ class HotelController extends BaseController
             return $this->sendError('You are not permission.');
         }
     }
+
+    public function getHotelCheapest(){
+        $hotel = Hotel::orderBy('price', 'asc')->with('hotelImage')->limit(7)->get();
+
+        if (is_null($hotel)) {
+            return $this->sendError('Hotel not found.');
+        }
+
+        return response()->json(([
+            'success' => true,
+            'message' => 'Hotel retrieved successfully.',
+            'data' => $hotel,
+        ]
+        ));
+    }
 }
