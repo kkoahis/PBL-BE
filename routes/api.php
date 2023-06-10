@@ -157,7 +157,7 @@ Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('bookings'
     Route::delete('/{id}', [BookingController::class, 'destroy']);
 
     Route::get('/host', [BookingController::class, 'getBookingByHost']);
-    Route::get('/hotel/past/{id}', [BookingController::class, 'getBookingByHotelIdPast']);
+    Route::get('/host/past', [BookingController::class, 'getpassBookingByHost']);
     // acceptBooking
     Route::put('/accept/{id}', [BookingController::class, 'acceptBooking']);
     // cancelBooking
@@ -166,7 +166,6 @@ Route::middleware(['auth:sanctum', 'verified', 'role:hotel'])->prefix('bookings'
 
 
 Route::middleware(['auth:sanctum', 'verified', 'role:user'])->prefix('bookings')->group(function () {
-    Route::get('/host', [BookingController::class, 'getBookingByHost']);
     Route::post('/', [BookingController::class, 'store']);
     Route::get('/user/{id}', [BookingController::class, 'getBookingByUserId']);
     Route::get('/user/past/{id}', [BookingController::class, 'getBookingByUserIdPast']);
