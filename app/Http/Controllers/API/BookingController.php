@@ -566,8 +566,13 @@ class BookingController extends BaseController
         if ($hotel == null) {
             return $this->sendError('Hotel not found.');
         }
-        $booking = Booking::where('hotel_id', $hotel->id)->where('status', 'pending')->paginate(10);
+        if ($user->id != $hotel->created_by) {
+            return $this->sendError('You are not authorized to do this action.');
+        }
+
+        $booking = Booking::where('hotel_id', $hotel->id)->where('status', 'pending')->get();
         if (is_null($booking)) {
+            dd('null');
             return $this->sendError('Booking not found.');
         }
 
