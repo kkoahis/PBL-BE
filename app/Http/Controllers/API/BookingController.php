@@ -392,7 +392,7 @@ class BookingController extends BaseController
         }
 
         // where accepted or rejected
-        $booking = Booking::where('user_id', $id)->where('date_out', '<', Carbon::now())->where('status', '!=', 'pending')->paginate(10);
+        $booking = Booking::where('user_id', $id)->where('status', '!=', 'pending')->paginate(10);
 
         if (is_null($booking)) {
             return $this->sendError('Booking not found.');
@@ -624,6 +624,7 @@ class BookingController extends BaseController
             $allHotel[$key] = $value->id;
         }
 
+        // status != pending
         $booking = Booking::whereIn('hotel_id', $allHotel)->where('status', 'accepted')->paginate(20);
 
         if (is_null($booking)) {
