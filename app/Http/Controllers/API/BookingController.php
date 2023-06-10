@@ -566,7 +566,7 @@ class BookingController extends BaseController
         if ($hotel == null) {
             return $this->sendError('Hotel not found.');
         }
-        $booking = Booking::where('hotel_id', $hotel->id)->where('status', 'accepted')->paginate(10);
+        $booking = Booking::where('hotel_id', $hotel->id)->where('status', 'pending')->paginate(10);
         if (is_null($booking)) {
             return $this->sendError('Booking not found.');
         }
