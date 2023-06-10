@@ -65,7 +65,7 @@ class ReviewController extends BaseController
         $review = new Review();
         $review->user_id = $user_id;
         $review->booking_id = $input['booking_id'];
-        $review->title = $input['title'];
+        $review->title = 'title';
         $review->content = $input['content'];
         $review->rating = $input['rating'];
 
