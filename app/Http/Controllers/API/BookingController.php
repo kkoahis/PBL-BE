@@ -702,7 +702,6 @@ class BookingController extends BaseController
         }
 
         if (count($bookingItem) == 0) {
-            dd($bookingItem);
             return $this->sendError('Booking not found 2.');
         } else {
             return response()->json([
