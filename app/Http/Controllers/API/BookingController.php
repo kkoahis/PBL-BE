@@ -677,23 +677,22 @@ class BookingController extends BaseController
             $allHotel[$key] = $value->id;
         }
 
-        $booking = Booking::whereIn('hotel_id', $allHotel)->where('status', 'rejected')->paginate(20);
-
-        if (is_null($booking)) {
-            return $this->sendError('Booking not found.');
-        }
+        $booking = Booking::whereIn('hotel_id', $allHotel)->where('status', 'rejected')->get();
 
         foreach ($booking as $key => $value) {
-            $bookingdetail = BookingDetail::where('booking_id', $value->id)->first();
-            
-            $bookingItem[] = [
-                [
-                    'booking' => $value,
-                    'payment' => $value->payment()->get(),
-                    'category' => $bookingdetail->room()->first()->category()->first(),
-                    'category_image' => $bookingdetail->room()->first()->category()->first()->categoryImage()->first(),
-                ]
-            ];
+            $bookingdetail = BookingDetail::where('booking_id', $value->id)->get();
+
+            dd($bookingdetail);
+            foreach ($bookingdetail as $key => $value) {
+                $bookingItem[] = [
+                    [
+                        'booking' => $value->booking()->first(),
+                        'payment' => $value->booking()->first()->payment()->get(),
+                        'category' => $value->room()->first()->category()->first(),
+                        'category_image' => $value->room()->first()->category()->first()->categoryImage()->first(),
+                    ]
+                ];
+            }
         }
 
         if (count($booking) == 0) {
