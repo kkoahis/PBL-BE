@@ -391,30 +391,31 @@ class BookingController extends BaseController
             return $this->sendError('You can not get booking of another user.');
         }
 
-        // where accepted or rejected
-        $booking = Booking::where('user_id', $id)->where('status', '!=', 'pending')->get();
+        // where != pending and unpaid
+        $booking = Booking::where('user_id', $id)->where('status', '!=', 'pending')->where('status', '!=', 'unpaid')->get();
+
+
+
+        foreach ($booking as $key => $value) {
+            $bookingdetail = $value->bookingDetail()->get();
+
+            foreach ($bookingdetail as $key => $value) {
+                $bookingItem[] = [
+                    [
+                        'booking' => $value->booking()->first(),
+                        'payment' => $value->booking()->first()->payment()->first(),
+                        'category' => $value->room()->first()->category()->first(),
+                        'category_image' => $value->room()->first()->category()->first()->categoryImage()->first(),
+                    ]
+                ];
+            }
+        };
 
         if (is_null($booking)) {
             return $this->sendError('Booking not found.');
         }
 
-        foreach ($booking as $key => $value) {
-            dd($value->bookingDetail()->first()->room()->first()->category()->first());
-            $bookingItem[] = [
-                [
-                    // 'booking' => $value,
-                    // 'payment' => $value->payment()->get(),
-                    // 'category' => $value->hotel()->first()->category()->first(),
-                    // 'category_image' => $value->hotel()->first()->category()->first()->categoryImage()->first(),
-
-                    'booking' => $value,
-                    'payment' => $value->payment()->get(),
-                    'category' => $value->bookingDetail()->first()->room()->first()->category()->first(),
-                    'category_image' => $value->bookingDetail()->first()->room()->first()->category()->first()->categoryImage()->first(),
-                ]
-            ];
-        }
-
+    
         if (count($booking) == 0) {
             return $this->sendError('Booking not found.');
         } else {
