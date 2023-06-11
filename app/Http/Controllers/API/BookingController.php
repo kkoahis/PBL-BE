@@ -398,8 +398,8 @@ class BookingController extends BaseController
         foreach ($booking as $key => $value) {
             // $bookingdetail = $value->bookingDetail()->get();
 
-            // get each booking detail 1 time
-            $bookingdetail = $value->bookingDetail()->get()->unique('booking_id');
+            // get each booking detail 1 time, also get soft delete
+            $bookingdetail = $value->bookingDetail()->withTrashed()->get()->unique('room_id');
 
             foreach ($bookingdetail as $key => $value) {
                 $bookingItem[] = [
@@ -687,7 +687,8 @@ class BookingController extends BaseController
         }
 
         foreach ($booking as $key => $value) {
-            foreach ($value->bookingDetail()->where('status', 'rejected')->get() as $key2 => $value2) {
+            // also get booking detail that soft deleted
+            foreach ($value->bookingDetail()->where('status', 'rejected')->withTrashed()->get()->unique('room_id') as $key2 => $value2) {
                 $bookingItem[] = [
                     [
                         'booking' => $value,
