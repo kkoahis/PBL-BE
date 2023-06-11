@@ -399,9 +399,10 @@ class BookingController extends BaseController
             // $bookingdetail = $value->bookingDetail()->get();
 
             // get each booking detail 1 time, also get soft delete
-            $bookingdetail = $value->bookingDetail()->withTrashed()->get()->unique('room_id');
+            $bookingdetail = $value->bookingDetail()->withTrashed()->get()->unique('booking_id');
 
             foreach ($bookingdetail as $key => $value) {
+
                 $bookingItem[] = [
                     [
                         'booking' => $value->booking()->first(),
