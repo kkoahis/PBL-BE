@@ -392,13 +392,14 @@ class BookingController extends BaseController
         }
 
         // where accepted or rejected
-        $booking = Booking::where('user_id', $id)->where('status', '!=', 'pending')->paginate(10);
+        $booking = Booking::where('user_id', $id)->where('status', '!=', 'pending')->get();
 
         if (is_null($booking)) {
             return $this->sendError('Booking not found.');
         }
 
         foreach ($booking as $key => $value) {
+            dd($value->bookingDetail()->first()->room()->first()->category()->first());
             $bookingItem[] = [
                 [
                     // 'booking' => $value,
@@ -450,7 +451,7 @@ class BookingController extends BaseController
                 [
                     'booking' => $value,
                     'payment' => $value->payment()->get(),
-                    'category' => $value->hotel()->first()->category()->first(),
+                    'category' => $value->bookingDetail()->first()->room()->first()->category()->first(),
                 ]
             ];
         }
@@ -595,8 +596,8 @@ class BookingController extends BaseController
                 [
                     'booking' => $value,
                     'payment' => $value->payment()->get(),
-                    'category' => $value->hotel()->first()->category()->first(),
-                    'category_image' => $value->hotel()->first()->category()->first()->categoryImage()->first(),
+                    'category' => $value->bookingDetail()->first()->room()->first()->category()->first(),
+                    'category_image' => $value->bookingDetail()->first()->room()->first()->category()->first()->categoryImage()->first(),
                 ]
             ];
         }
@@ -641,8 +642,8 @@ class BookingController extends BaseController
                 [
                     'booking' => $value,
                     'payment' => $value->payment()->get(),
-                    'category' => $value->hotel()->first()->category()->first(),
-                    'category_image' => $value->hotel()->first()->category()->first()->categoryImage()->first(),
+                    'category' => $value->bookingDetail()->first()->room()->first()->category()->first(),
+                    'category_image' => $value->bookingDetail()->first()->room()->first()->category()->first()->categoryImage()->first(),
                 ]
             ];
         }
