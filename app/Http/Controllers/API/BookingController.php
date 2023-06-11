@@ -681,23 +681,29 @@ class BookingController extends BaseController
 
         $booking = Booking::whereIn('hotel_id', $allHotel)->where('status', 'rejected')->get();
 
+        if (is_null($booking)) {
+            return $this->sendError('Booking not found 1.');
+        }
+
         foreach ($booking as $key => $value) {
+
             $bookingdetail = BookingDetail::where('booking_id', $value->id)->get()->unique('booking_id');
 
-            foreach ($bookingdetail as $key => $value) {
+            foreach ($bookingdetail as $key => $values) {
                 $bookingItem[] = [
                     [
-                        'booking' => $value->booking()->first(),
-                        'payment' => $value->booking()->first()->payment()->get(),
-                        'category' => $value->room()->first()->category()->first(),
-                        'category_image' => $value->room()->first()->category()->first()->categoryImage()->first(),
+                        'booking' => $values->booking()->first(),
+                        'payment' => $values->booking()->first()->payment()->get(),
+                        'category' => $values->room()->first()->category()->first(),
+                        'category_image' => $values->room()->first()->category()->first()->categoryImage()->first(),
                     ]
                 ];
             }
         }
 
         if (count($bookingItem) == 0) {
-            return $this->sendError('Booking not found.');
+            dd($bookingItem);
+            return $this->sendError('Booking not found 2.');
         } else {
             return response()->json([
                 'success' => true,
