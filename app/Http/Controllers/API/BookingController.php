@@ -395,9 +395,11 @@ class BookingController extends BaseController
         $booking = Booking::where('user_id', $id)->where('status', '!=', 'pending')->where('status', '!=', 'unpaid')->get();
 
 
-
         foreach ($booking as $key => $value) {
-            $bookingdetail = $value->bookingDetail()->get();
+            // $bookingdetail = $value->bookingDetail()->get();
+
+            // get each booking detail 1 time
+            $bookingdetail = $value->bookingDetail()->get()->unique('booking_id');
 
             foreach ($bookingdetail as $key => $value) {
                 $bookingItem[] = [
