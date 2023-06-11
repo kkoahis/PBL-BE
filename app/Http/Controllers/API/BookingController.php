@@ -688,7 +688,7 @@ class BookingController extends BaseController
 
         foreach ($booking as $key => $value) {
 
-            $bookingdetail = BookingDetail::where('booking_id', $value->id)->get()->unique('booking_id');
+            $bookingdetail = $value->bookingDetail()->get();
 
             foreach ($bookingdetail as $key => $values) {
                 $bookingItem[] = [
