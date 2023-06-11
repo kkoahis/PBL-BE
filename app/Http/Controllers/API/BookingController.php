@@ -684,12 +684,14 @@ class BookingController extends BaseController
         }
 
         foreach ($booking as $key => $value) {
+            $bookingdetail = BookingDetail::where('booking_id', $value->id)->first();
+            
             $bookingItem[] = [
                 [
                     'booking' => $value,
                     'payment' => $value->payment()->get(),
-                    'category' => $value->hotel()->first()->category()->first(),
-                    'category_image' => $value->hotel()->first()->category()->first()->categoryImage()->first(),
+                    'category' => $bookingdetail->room()->first()->category()->first(),
+                    'category_image' => $bookingdetail->room()->first()->category()->first()->categoryImage()->first(),
                 ]
             ];
         }
