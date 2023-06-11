@@ -677,6 +677,8 @@ class BookingController extends BaseController
             $allHotel[$key] = $value->id;
         }
 
+        $bookingItem = [];
+
         $booking = Booking::whereIn('hotel_id', $allHotel)->where('status', 'rejected')->get();
 
         foreach ($booking as $key => $value) {
@@ -694,7 +696,7 @@ class BookingController extends BaseController
             }
         }
 
-        if (count($booking) == 0) {
+        if (count($bookingItem) == 0) {
             return $this->sendError('Booking not found.');
         } else {
             return response()->json([
