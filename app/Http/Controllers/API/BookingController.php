@@ -680,9 +680,8 @@ class BookingController extends BaseController
         $booking = Booking::whereIn('hotel_id', $allHotel)->where('status', 'rejected')->get();
 
         foreach ($booking as $key => $value) {
-            $bookingdetail = BookingDetail::where('booking_id', $value->id)->get();
+            $bookingdetail = BookingDetail::where('booking_id', $value->id)->get()->unique('booking_id');
 
-            dd($bookingdetail);
             foreach ($bookingdetail as $key => $value) {
                 $bookingItem[] = [
                     [
