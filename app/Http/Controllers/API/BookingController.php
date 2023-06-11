@@ -417,7 +417,7 @@ class BookingController extends BaseController
             return $this->sendError('Booking not found.');
         }
 
-    
+
         if (count($booking) == 0) {
             return $this->sendError('Booking not found.');
         } else {
@@ -662,7 +662,8 @@ class BookingController extends BaseController
         }
     }
 
-    public function getBookingRejectedByHost($idHost){
+    public function getBookingRejectedByHost($idHost)
+    {
         $user = Auth::user();
         if ($user->role != 'hotel') {
             return $this->sendError('You are not authorized to do this action.');
@@ -701,14 +702,10 @@ class BookingController extends BaseController
             }
         }
 
-        if (count($bookingItem) == 0) {
-            return $this->sendError('Booking not found 2.');
-        } else {
-            return response()->json([
-                'success' => true,
-                'message' => 'Booking retrieved successfully.',
-                'data' => $bookingItem
-            ], 200);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking retrieved successfully.',
+            'data' => $bookingItem
+        ], 200);
     }
 }
